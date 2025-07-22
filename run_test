@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -e  # Exit on error
+
+# Top module name passed as first argument
+TOP="$1"
+
+if [ -z "$TOP" ]; then
+    echo "Usage: ./run_test <module_name>"
+    exit 1
+fi
+
+SRC="rtl/${TOP}.sv"
+TB="rtl/tb/${TOP}tb.cpp"
+OBJDIR="obj_dir"
+VEXE="${OBJDIR}/V${TOP}"
+
+# Check files exist
+if [ ! -f "$SRC" ]; then
+    echo "Error: Verilog file not found: $SRC"
+    exit 1
+fi
+
+if [ ! -f "$TB" ]; then
+    echo "Error: Testbench not found: $TB"
+    exit 1
+fi
+
+echo "Running Verilator on $SRC with testbench $TB..."
+
+# Step 1: Generate simulation files
+verilator --Wall --trace --cc "$SRC" --exe "$TB" -Irtl
+
+# Step 2: Build simulation binary
+make -C "$OBJDIR" -f "V${TOP}.mk" "V${TOP}"
+
+# Step 3: Run the simulation
+echo "Running simulation..."
+"$VEXE"
+
+# Step 4: Optionally open waveform
+#if [ -f waveform.vcd ]; then
+#    echo "Opening waveform.vcd in GTKWave..."
+#    gtkwave waveform.vcd &
+#fi

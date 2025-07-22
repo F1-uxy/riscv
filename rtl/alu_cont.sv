@@ -10,26 +10,26 @@ module alu_cont (
 
 always_comb begin
     case (aluop)
-        ALUOP_LWSW: begin
-            alucontrol = ALU_ADD; // ADD
+        `ALUOP_LWSW: begin
+            alucontrol = `ALU_ADD; // ADD
         end
-        ALUOP_BRANCH: begin
-            alucontrol = ALU_SUB; // SUB
+        `ALUOP_BRANCH: begin
+            alucontrol = `ALU_SUB; // SUB
         end
-        ALUOP_RTYPE: begin
+        `ALUOP_RTYPE: begin
             case ({funct7, funct3})
                 {7'b0000000, 3'b000}: 
-                    alucontrol = ALU_ADD; // ADD
+                    alucontrol = `ALU_ADD; // ADD
                 {7'b0100000, 3'b000}:
-                    alucontrol = ALU_SUB; // SUB
+                    alucontrol = `ALU_SUB; // SUB
                 {7'b0000000, 3'b111}:
-                    alucontrol = ALU_AND; // AND
+                    alucontrol = `ALU_AND; // AND
                 {7'b0000000, 3'b110}:
-                    alucontrol = ALU_OR; // OR
-                default: alucontrol = ALU_INVALID; // INVALID
+                    alucontrol = `ALU_OR; // OR
+                default: alucontrol = `ALU_INVALID; // INVALID
             endcase
         end
-        default: alucontrol = ALU_INVALID;
+        default: alucontrol = `ALU_INVALID;
     endcase
 end
     

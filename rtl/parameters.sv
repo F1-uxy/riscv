@@ -10,4 +10,11 @@
 `define ALUOP_BRANCH 2'b01   // beq (use SUB)
 `define ALUOP_RTYPE  2'b10   // R-type (use funct3/funct7)
 
+// IMU signals
+`define IMU_I  3'b000
+`define IMU_S  3'b001
+`define IMU_SB 3'b010
+`define IMU_UJ 3'b011
+`define IMU_U  3'b100
+
 

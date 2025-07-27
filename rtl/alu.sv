@@ -6,9 +6,9 @@ module alu (
     input logic [63:0] rs2,
 
     output logic [63:0] result,
-    output logic zero,
-    output logic carry,
-    output logic overflow
+    output logic c_zero,
+    output logic c_carry,
+    output logic c_overflow
 );
 
 logic [63:0] sum;
@@ -22,9 +22,9 @@ assign sub = (alucontrol == `ALU_SUB);
 assign rs2_in = sub ? ~rs2 : rs2;
 
 /* verilator lint_off WIDTHEXPAND */
-assign {carry, sum} = rs1 + rs2_in + sub;
+assign {c_carry, sum} = rs1 + rs2_in + sub;
 
-assign overflow = (rs1[63] == rs2_in[63]) && (sum[63] != rs1[63]);
+assign c_overflow = (rs1[63] == rs2_in[63]) && (sum[63] != rs1[63]);
 
 always_comb begin
     case (alucontrol)
@@ -36,6 +36,6 @@ always_comb begin
     endcase
 end
 
-assign zero = (result == 64'd0);
+assign c_zero = (result == 64'd0);
     
 endmodule

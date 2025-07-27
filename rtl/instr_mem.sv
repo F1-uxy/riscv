@@ -1,5 +1,6 @@
 // Instruction Memory
 
+/* verilator lint_off UNUSEDSIGNAL */
 module instr_mem (
     input logic clk,
     input logic [63:0] addr,
@@ -7,11 +8,20 @@ module instr_mem (
     output logic [31:0] instruction
 );
 
+
 logic [31:0] mem [0:65535];
 
-always_ff @( clk ) begin
-    // Address must be word aligned
-    instruction <= mem[addr[63:2]];
+initial begin
+    $display("Loading rom.");
+    //$readmemh("roms/example.mem", mem);
+    mem[0] = 32'h00500113;
+    mem[1] = 32'h00508113;
+
 end
-    
+
+always_ff @(posedge clk) begin
+    // Address must be word aligned
+    instruction <= mem[addr[17:2]];
+end
+
 endmodule

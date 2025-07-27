@@ -6,15 +6,23 @@
 `define ALU_INVALID  4'bxxxx
 
 // ALUOP signals
-`define ALUOP_LWSW   2'b00   // load/store (use ADD)
-`define ALUOP_BRANCH 2'b01   // beq (use SUB)
-`define ALUOP_RTYPE  2'b10   // R-type (use funct3/funct7)
+`define ALUOP_LWSW   2'b000   // load/store (use ADD)
+`define ALUOP_BRANCH 2'b001   // beq (use SUB)
+`define ALUOP_RTYPE  2'b010   // R-type (use funct3/funct7)
 
 // IMU signals
-`define IMU_I  3'b000
-`define IMU_S  3'b001
-`define IMU_SB 3'b010
-`define IMU_UJ 3'b011
-`define IMU_U  3'b100
+`define R_TYPE  3'b000
+`define I_TYPE  3'b001
+`define S_TYPE  3'b010
+`define SB_TYPE 3'b011
+`define UJ_TYPE 3'b100
+`define U_TYPE  3'b101
+
+// Control Unit Opcode Types
+`define C_R_TYPE   7'b0110011
+`define C_IM_TYPE  7'b0010011
+`define C_LW_TYPE  7'b0000011
+`define C_SW_TYPE  7'b0100011
+`define C_BEQ_TYPE 7'b1100011
 
 

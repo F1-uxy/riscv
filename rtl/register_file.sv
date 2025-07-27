@@ -10,10 +10,10 @@ module register_file (
     input logic [63:0] data,
 
     output logic [63:0] out_a,
-    output logic [63:0] out_b,
+    output logic [63:0] out_b
 );
 
-logic [63:0] regs [31:0];
+logic [63:0] regs [31:0] /* verilator public */;
 
 // Register x0 must always return 0 and is not writable
 always_ff @(posedge clk) begin
@@ -24,6 +24,5 @@ always_ff @(posedge clk) begin
 
 assign out_a = (read_a == 5'd0) ? 64'd0 : regs[read_a];
 assign out_b = (read_b == 5'd0) ? 64'd0 : regs[read_b];
-
 
 endmodule

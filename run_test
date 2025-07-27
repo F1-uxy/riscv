@@ -39,7 +39,7 @@ echo "Running simulation..."
 "$VEXE"
 
 # Step 4: Optionally open waveform
-#if [ -f waveform.vcd ]; then
-#    echo "Opening waveform.vcd in GTKWave..."
-#    gtkwave waveform.vcd &
-#fi
+if [ -f waveform.vcd ]; then
+    echo "Opening waveform.vcd in GTKWave..."
+    gtkwave waveform.vcd &
+fi

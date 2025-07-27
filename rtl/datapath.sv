@@ -1,4 +1,6 @@
-module memory (
+`include "rtl/library/counter.sv"
+
+module datapath (
     input logic clk,
     input logic reset
 );
@@ -16,14 +18,12 @@ assign funct7 = instr[31:25];
 assign funct3 = instr[14:12];
 
 logic [63:0] reg_data_in;
-logic [5:0] reg_sel;
+logic [4:0] reg_sel;
 assign reg_sel = instr[11:7];
 
 logic [63:0] b_out;
 logic [63:0] a_out;
 
-logic [63:0] alu_b;
-logic [63:0] alu_out;
 
 logic [63:0] dmu_out;
 
@@ -32,25 +32,25 @@ logic [63:0] imm_out;
 /*
     --- Register File ---
 */
-logic reg_write;
 register_file m_regs (
     .clk(clk),
     .read_a(rs1),
     .read_b(rs2),
-    .write_en(reg_write),
+    .write_en(c_reg_we),
     .write_sel(reg_sel),
-    .data(dmu_out),
+    .data(reg_data_in),
     
     .out_a(a_out),
     .out_b(b_out)
 );
+
 
 /*
     --- Immediate Generation Unit ---
 */
 igu m_igu (
     .instr(instr),
-    .imm_type(),
+    .imm_type(instr_type),
     
     .imm_out(imm_out)
 );
@@ -58,12 +58,11 @@ igu m_igu (
 /*
     --- Data Memory Unit ---
 */
-logic mem_write, mem_read, mem_to_reg;
 dmu m_dmu (
     .clk(clk),
-    .write_en(mem_write),
-    .read_en(mem_read),
-    .addr(alu_out),
+    .write_en(c_dmu_we),
+    .read_en(c_dmu_re),
+    .addr(alu_out[15:0]),
     .data_in(b_out),
     
     .data_out(dmu_out)
@@ -73,17 +72,20 @@ dmu m_dmu (
     --- ALU ---
 */
 logic [3:0] alu_op;
-logic zero, carry, overflow;
+logic [63:0] alu_b;
+logic [63:0] alu_out;
+logic f_zero;
+
+/* verilator lint_off PINMISSING */
 alu c_alu (
     .alucontrol(alu_op),
     .rs1(a_out),
     .rs2(alu_b),
 
-    .result(),
-    .zero(),
-    .carry(),
-    .overflow()
+    .result(alu_out),
+    .c_zero(f_zero)
 );
+
 
 /*
     --- ALU Control Unit ---
@@ -91,7 +93,7 @@ alu c_alu (
 alu_cont c_alu_cont (
     .funct7(funct7),
     .funct3(funct3),
-    .aluop(),
+    .instr_type(instr_type),
 
     .alucontrol(alu_op)
 );
@@ -99,26 +101,50 @@ alu_cont c_alu_cont (
 /*
     --- Program Counter ---
 */
-logic [31:0] pc_out;
-logic [31:0] pc_inc;
+logic [63:0] pc_out;
+logic [63:0] pc_inc;
 counter #(.WIDTH(64)) m_pc (
     .clk(clk),
     .reset(reset),
-    .inc()
+    .inc(pc_inc),
 
     .out(pc_out)
 );
 
+
 /*
     --- Instruction Memory ---
 */
+
 instr_mem m_imem (
     .clk(clk),
     .addr(pc_out),
     .instruction(instr)
 );
 
-assign alu_b = alu_src ? imm_out : b_out;
-assign reg_data_in = mem_to_reg ? dmu_out : alu_out;
+/*
+    --- Control Unit ---
+*/
+logic [6:0] opcode;
+
+logic c_branch, c_reg_we, c_dmu_we, c_dmu_re, c_mtreg, c_alu_src;
+logic [2:0] instr_type;
+control_unit c_control_unit (
+    .opcode(opcode),
+
+    .branch(c_branch),
+    .reg_we(c_reg_we),
+    .dmu_we(c_dmu_we),
+    .dmu_re(c_dmu_re),
+    .mtreg(c_mtreg),
+    .alu_src(c_alu_src),
+    .instr_type(instr_type)
+);
+
+
+assign reg_data_in = c_mtreg ? dmu_out : alu_out;
+assign alu_b = c_alu_src ? imm_out : b_out;
+assign pc_inc = c_branch & f_zero ? (imm_out << 1) : 4;
+assign opcode = instr[6:0];
 
 endmodule

@@ -1,6 +1,6 @@
-### Risc-V CPU Implmented in SystemVerilog
+## Risc-V CPU Implmented in SystemVerilog
 
-#### Instruction Format:
+### Instruction Format:
 There are 6 formats of instruction:
 <ol>
     <li> Register-Register (R-type)
@@ -11,7 +11,7 @@ There are 6 formats of instruction:
     <li> Upper Immediate (UI-type)
 </ol>
 
-### R-type (Register-Register Arithmetic Instructions)
+#### R-type (Register-Register Arithmetic Instructions)
 
 | Field    | Bits   | Description                        |
 |----------|--------|----------------------------------|
@@ -24,7 +24,7 @@ There are 6 formats of instruction:
 
 ---
 
-### I-type (Immediate and Load Instructions)
+#### I-type (Immediate and Load Instructions)
 
 | Field      | Bits    | Description                        |
 |------------|---------|----------------------------------|
@@ -36,7 +36,7 @@ There are 6 formats of instruction:
 
 ---
 
-### S-type (Store Instructions)
+#### S-type (Store Instructions)
 
 | Field            | Bits     | Description                         |
 |------------------|----------|-----------------------------------|
@@ -51,7 +51,7 @@ There are 6 formats of instruction:
 
 ---
 
-### SB-type (Conditional Branch Instructions)
+#### SB-type (Conditional Branch Instructions)
 
 | Field            | Bits            | Description                          |
 |------------------|-----------------|------------------------------------|
@@ -68,4 +68,22 @@ There are 6 formats of instruction:
 
 The rs2 and rs1 values are always in the same location for hardware simplicity therefore, the immediate value must be split into 2 parts.
 
-Page 509
+### Control Lines:
+<ul>
+    <li> Register File Write Enable
+    <li> Instruction Type [2:0]
+    <li> Data Memory Unit Write Enable
+    <li> Data Memory Unit Read Enable
+    <li> Memory to Register Selector
+    <li> Alu Source Selector
+    <li> Program Counter Source Selector
+</ul>
+
+
+| Instruction | reg\_we | alu\_src | dmu\_we | dmu\_re | mtreg | branch | instr\_type |
+| ----------- | ------- | -------- | ------- | ------- | ----- | ------ | ----------- |
+| R-type      | 1       | 0        | 0       | 0       | 0     | 0      | R\_TYPE     |
+| I-type      | 1       | 1        | 0       | 0       | 0     | 0      | I\_TYPE     |
+| LW          | 1       | 1        | 0       | 1       | 1     | 0      | I\_TYPE     |
+| SW          | 0       | 1        | 1       | 0       | 0     | 0      | S\_TYPE     |
+| BEQ         | 0       | 0        | 0       | 0       | 0     | 1      | SB\_TYPE    |

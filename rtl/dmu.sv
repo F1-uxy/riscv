@@ -5,10 +5,10 @@ module dmu (
     input logic write_en,
     input logic read_en,
 
-    input logic [11:0] addr,
+    input logic [15:0] addr,
     input logic [63:0] data_in,
 
-    output logic [63:0] data_out,
+    output logic [63:0] data_out
 );
 
 logic [7:0] mem [0:65535]; // Tempory memory
@@ -18,7 +18,7 @@ always_comb begin
         data_out = {mem[addr + 7], mem[addr + 6], 
                     mem[addr + 5], mem[addr + 4], 
                     mem[addr + 3], mem[addr + 2], 
-                    mem[addr + 1], mem[addr + 0]}
+                    mem[addr + 1], mem[addr + 0]};
     end else begin
         data_out = 64'b0;
     end

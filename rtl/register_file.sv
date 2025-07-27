@@ -1,11 +1,13 @@
+// Register File
+
 module register_file (
-    input  logic       clk,
+    input logic        clk,
     input logic [4:0]  read_a,
     input logic [4:0]  read_b,
 
     input logic        write_en,
     input logic [4:0]  write_sel,
-    input logic [31:0] data,
+    input logic [63:0] data,
 
     output logic [63:0] out_a,
     output logic [63:0] out_b,

@@ -87,3 +87,28 @@ The rs2 and rs1 values are always in the same location for hardware simplicity t
 | LW          | 1       | 1        | 0       | 1       | 1     | 0      | I\_TYPE     |
 | SW          | 0       | 1        | 1       | 0       | 0     | 0      | S\_TYPE     |
 | BEQ         | 0       | 0        | 0       | 0       | 0     | 1      | SB\_TYPE    |
+
+
+### Pipelining:
+<ol>
+    <li> Fetch instruction from memory
+    <li> Read registers and decode the instruction
+    <li> Execute the operation or calculate an address
+    <li> Access an operand in data memory (optional)
+    <li> Write the result into a register (optional)
+</ol>
+
+Write occurs in the first half of a clock cycle \& write occurs in the second half
+
+#### Instructions:
+| Instruction           | Fetch | Register Read | ALU operation | Data Access | Register Write |
+| --------------------- | ----- | ------------- | ------------- | ----------- | -------------- |
+| Load Doubleword (ld)  | X     | X             | X             | X           | X              |
+| Store Doubleword (sd) | X     | X             | X             | X           |                |
+| R-Format              | X     | X             | X             |             | X              |
+| Branch                | X     | X             | X             |             |                |
+
+#### Branching:
+For a pipelined branch we always assume that the branch is not taken. If the branch is taken then we are penalized with a stall
+
+Dynamic branch prediction takes into account the success of the previous branch predictions for future predictions

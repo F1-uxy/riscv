@@ -91,11 +91,11 @@ The rs2 and rs1 values are always in the same location for hardware simplicity t
 
 ### Pipelining:
 <ol>
-    <li> Fetch instruction from memory
-    <li> Read registers and decode the instruction
-    <li> Execute the operation or calculate an address
-    <li> Access an operand in data memory (optional)
-    <li> Write the result into a register (optional)
+    <li> IF: Fetch instruction from memory
+    <li> ID: Read registers and decode the instruction
+    <li> EX: Execute the operation or calculate an address
+    <li> MEM: Access an operand in data memory (optional)
+    <li> WB: Write the result back into a register (optional)
 </ol>
 
 Write occurs in the first half of a clock cycle \& write occurs in the second half
@@ -107,6 +107,15 @@ Write occurs in the first half of a clock cycle \& write occurs in the second ha
 | Store Doubleword (sd) | X     | X             | X             | X           |                |
 | R-Format              | X     | X             | X             |             | X              |
 | Branch                | X     | X             | X             |             |                |
+
+#### Pipeline Register:
+Registers are need to hold inter-stage values for a successful pipeline:
+<ul>
+    <li> IF/ID  - 92b wide (32b Instruction + 64b PC Address)
+    <li> ID/EX  - 256b wide (64b Data 1 + 64b Data 2 + 64b Immediate Value + 64b PC Address)
+    <li> EX/MEM - 193b wide (64b PC Address + 64b ALU Result + 64b PC Address + 1b Zero Flag)
+    <li> MEM/WB - 128b wide (64b ALU result + 64b Data read)
+</ul>
 
 #### Branching:
 For a pipelined branch we always assume that the branch is not taken. If the branch is taken then we are penalized with a stall

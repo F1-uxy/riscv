@@ -144,7 +144,7 @@ module datapath (
 
     assign reg_data_in = c_mtreg ? dmu_out : alu_out;
     assign alu_b = c_alu_src ? imm_out : b_out;
-    assign pc_inc = c_branch & f_zero ? (imm_out << 1) : 4;
+    assign pc_inc = (c_branch && f_zero) ? (imm_out << 1) : 64'd4;
     assign opcode = instr[6:0];
 
 endmodule

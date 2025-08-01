@@ -11,7 +11,7 @@ module dmu (
     output logic [63:0] data_out
 );
 
-logic [7:0] mem [0:65535]; // Tempory memory
+logic [7:0] mem [65535:0] /* verilator public */;
 
 always_comb begin
     if (read_en & !write_en) begin

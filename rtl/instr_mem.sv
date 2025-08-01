@@ -13,15 +13,15 @@ logic [31:0] mem [0:65535];
 
 initial begin
     $display("Loading rom.");
-    $readmemh("roms/example.mem", mem);
+    $readmemh("roms/testbench.mem", mem);
     //mem[0] = 32'h00508093;
     //mem[1] = 32'h00508093;
 
 end
 
-always_ff @(posedge clk) begin
+always_comb begin
     // Address must be word aligned
-    instruction <= mem[addr[17:2]];
+    instruction = mem[addr[17:2]];
 end
 
 endmodule

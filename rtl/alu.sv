@@ -1,4 +1,4 @@
-`include "rtl/parameters.sv"
+`include "parameters.sv"
 
 module alu (
     input logic [3:0] alucontrol,
@@ -32,6 +32,7 @@ always_comb begin
         `ALU_SUB: result = sum;
         `ALU_AND: result = rs1 & rs2;
         `ALU_OR:  result = rs1 | rs2;
+        `ALU_XOR:  result = rs1 ^ rs2;
         default: result = 64'd0;
     endcase
 end

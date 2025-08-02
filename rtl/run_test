@@ -1,0 +1,62 @@
+#!/bin/bash
+
+set -e  # Exit on error
+
+# Top module name passed as first argument
+TOP="$1"
+
+if [ -z "$TOP" ]; then
+    echo "Usage: ./run_test <module_name>"
+    exit 1
+fi
+
+SRC="${TOP}.sv"
+TB="tb/${TOP}tb.cpp"
+OBJDIR="obj_dir"
+VEXE="${OBJDIR}/V${TOP}"
+OSS_CAD_DIR="$HOME/oss-cad-suite/"
+OSS_CAD_BIN="$OSS_CAD_DIR/bin"
+
+if ! command -v verilator &> /dev/null; then
+    echo "Verilator not found in PATH. Adding OSS CAD Suite..."
+    
+    # Check if the oss-cad-suite exists
+    if [ -x "$OSS_CAD_BIN" ]; then
+        export PATH="$OSS_CAD_BIN:$PATH"
+        echo "Added $OSS_CAD_BIN to PATH"
+    else
+        echo "Error: Verilator not found in $OSS_CAD_BIN"
+        exit 1
+    fi
+else
+    echo "Verilator found: $(which verilator)"
+fi
+
+# Check files exist
+if [ ! -f "$SRC" ]; then
+    echo "Error: Verilog file not found: $SRC"
+    exit 1
+fi
+
+if [ ! -f "$TB" ]; then
+    echo "Error: Testbench not found: $TB"
+    exit 1
+fi
+
+echo "Running Verilator on $SRC with testbench $TB..."
+
+# Step 1: Generate simulation files
+verilator --Wall --trace --cc "$SRC" --exe "$TB" -Irtl
+
+# Step 2: Build simulation binary
+make -C "$OBJDIR" -f "V${TOP}.mk" "V${TOP}"
+
+# Step 3: Run the simulation
+echo "Running simulation..."
+"$VEXE"
+
+# Step 4: Optionally open waveform
+if [ -f waveform.vcd ]; then
+    echo "Opening waveform.vcd in GTKWave..."
+    gtkwave waveform.vcd &
+fi

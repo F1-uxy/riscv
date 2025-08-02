@@ -1,4 +1,4 @@
-`include "rtl/parameters.sv"
+`include "parameters.sv"
 
 module alu_cont (
     input  logic [6:0] funct7,

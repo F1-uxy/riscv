@@ -46,7 +46,7 @@ void test_sub(Valu* alu, VerilatedVcdC* trace) {
     alu->rs1 = 0x0005;
     alu->rs2 = 0x000A;
     step(alu, trace);
-    CHECK(alu->result, 0xFFFFFFFB);
+    CHECK(alu->result, (int)0xFFFFFFFB);
 }
 
 void test_and(Valu* alu, VerilatedVcdC* trace) {
@@ -56,7 +56,7 @@ void test_and(Valu* alu, VerilatedVcdC* trace) {
     alu->rs2 = 0x5555;
     step(alu, trace);
     CHECK(alu->result, 0x0000);
-    CHECK(alu->zero, 1);
+    CHECK(alu->c_zero, 1);
 
     alu->rs1 = 0xAAAA;
     alu->rs2 = 0xAAAA;

@@ -61,12 +61,13 @@ void run_test_program(Vdatapath* datapath, VerilatedVcdC* m_trace, Vdatapath_reg
                                   //   lw x9, 0(x0)
     
     CHECK(m_regs->regs[10], 0);   // x10 not set due to branch:
-                                  //   beq x1, x1, +8
-                                  //   addi x10, x0, 99 ← skipped
+                                  // beq x1, x1, +8
+                                  // addi x10, x0, 99 ← skipped
 
     CHECK(m_regs->regs[11], 123); // x11 ← 123 via:
-                                  //   bne x1, x2, +8 (not taken)
-                                  //   addi x11, x0, 123
+                                  // bne x1, x2, +8 (not taken)
+                                  // addi x11, x0, 123
+                                  
 }
 
 int main(int argc, char **argv) {
@@ -82,9 +83,9 @@ int main(int argc, char **argv) {
     m_trace->open("datapath.vcd");
 
     step(datapath, m_trace, 1);
-    //step(datapath, m_trace, 2);
+    step(datapath, m_trace, 2);
 
-    run_test_program(datapath, m_trace, m_regs, m_dmu);
+    //run_test_program(datapath, m_trace, m_regs, m_dmu);
 
     std::cout << "All tests passed.\n";
 

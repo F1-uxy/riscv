@@ -15,22 +15,22 @@ always_comb begin
         end
 
         `ALUOP_BRANCH: begin
-            alucontrol = `ALU_SUB; // Effective address: base + offset
+            alucontrol = `ALU_SUB; // Comparator
         end
 
         `ALUOP_RTYPE: begin
-            case ({funct7, funct3})
-                {7'b0000000, 3'b000}: alucontrol = `ALU_ADD; // ADD
-                {7'b0100000, 3'b000}: alucontrol = `ALU_SUB; // SUB
-                {7'b0000000, 3'b111}: alucontrol = `ALU_AND; // AND
-                {7'b0000000, 3'b110}: alucontrol = `ALU_OR;  // OR
-                {7'b0000000, 3'b100}: alucontrol = `ALU_XOR; // XOR
-                default: alucontrol = `ALU_INVALID;
+            case (funct3)
+                3'b000: alucontrol = (funct7 == 7'b0100000) ? `ALU_SUB : `ALU_ADD; // add/sub/addi
+                3'b111: alucontrol = `ALU_AND;
+                3'b110: alucontrol = `ALU_OR;
+                //3'b010: alucontrol = `ALU_SLT;
+                //3'b001: alucontrol = `ALU_SLL;
+                //3'b101: alucontrol = (funct7 == 7'b0100000) ? `ALU_SRA : `ALU_SRL;
+                default: alucontrol = `ALU_ADD; // default fallback
             endcase
         end
 
         default: alucontrol = `ALU_INVALID;
-
     endcase
 end
 

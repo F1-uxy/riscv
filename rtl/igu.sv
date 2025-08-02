@@ -8,11 +8,12 @@ module igu (
     output logic [63:0] imm_out
 );
 
-logic [6:0] opcode = instr[6:0];
+logic [6:0] opcode;
+assign opcode = instr[6:0];
 
 always_comb begin
     case (opcode)
-        `C_IM_TYPE | `C_LW_TYPE | `OP_JALR: begin
+        `C_IM_TYPE, `C_LW_TYPE, `OP_JALR: begin
             imm_out = {{53{instr[31]}}, instr[30:20]}; //I_TYPE
         end 
         `C_SW_TYPE: begin
@@ -24,7 +25,7 @@ always_comb begin
         `OP_JAL: begin
             imm_out = {{43{instr[31]}}, instr[31], instr[19:12], instr[20], instr[30:21], 1'b0}; //UJ_TYPE
         end
-        `OP_LUI | `OP_AUIPC: begin
+        `OP_LUI, `OP_AUIPC: begin
             imm_out = {{32{instr[31]}}, instr[31:12], 12'b0}; // U-TYPE
         end
         default: imm_out = 64'b0;

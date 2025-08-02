@@ -56,6 +56,11 @@ always_comb begin
             alu_src = 1;
             mtreg = 0;
         end
+        `OP_AUIPC: begin
+            reg_we = 1;
+            alu_src = 1;
+            aluop = `ALUOP_LWSW;
+        end
         default: begin
             branch     = 0;
             reg_we     = 0;

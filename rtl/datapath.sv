@@ -50,7 +50,6 @@ module datapath (
     */
     igu m_igu (
         .instr(instr),
-        .imm_type(instr_type),
         
         .imm_out(imm_out)
     );
@@ -93,7 +92,7 @@ module datapath (
     alu_cont c_alu_cont (
         .funct7(funct7),
         .funct3(funct3),
-        .instr_type(instr_type),
+        .aluop(aluop),
 
         .alucontrol(alu_op)
     );
@@ -128,7 +127,7 @@ module datapath (
     logic [6:0] opcode;
 
     logic c_branch, c_reg_we, c_dmu_we, c_dmu_re, c_mtreg, c_alu_src;
-    logic [2:0] instr_type;
+    logic [1:0] aluop;
     control_unit c_control_unit (
         .opcode(opcode),
 
@@ -138,7 +137,7 @@ module datapath (
         .dmu_re(c_dmu_re),
         .mtreg(c_mtreg),
         .alu_src(c_alu_src),
-        .instr_type(instr_type)
+        .aluop(aluop)
     );
 
 

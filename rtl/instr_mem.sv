@@ -13,7 +13,7 @@ logic [31:0] mem [0:65535];
 
 initial begin
     $display("Loading rom.");
-    $readmemh("roms/testbench.mem", mem);
+    $readmemh("../roms/testbench.mem", mem);
     //mem[0] = 32'h00508093;
     //mem[1] = 32'h00508093;
 

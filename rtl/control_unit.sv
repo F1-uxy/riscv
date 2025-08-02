@@ -1,4 +1,4 @@
-`include "rtl/parameters.sv"
+`include "parameters.sv"
 
 module control_unit (
     input  logic [6:0] opcode,

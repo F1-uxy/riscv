@@ -1,4 +1,4 @@
-`include "rtl/library/counter.sv"
+`include "library/counter.sv"
 
 module datapath (
     input logic clk,

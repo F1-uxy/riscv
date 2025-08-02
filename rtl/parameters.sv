@@ -7,9 +7,9 @@
 `define ALU_INVALID  4'bxxxx
 
 // ALUOP signals
-`define ALUOP_LWSW   2'b000   // load/store (use ADD)
-`define ALUOP_BRANCH 2'b001   // beq (use SUB)
-`define ALUOP_RTYPE  2'b010   // R-type (use funct3/funct7)
+`define ALUOP_LWSW   2'b00   // load/store (use ADD)
+`define ALUOP_BRANCH 2'b01   // beq (use SUB)
+`define ALUOP_RTYPE  2'b10   // R-type (use funct3/funct7)
 
 // IMU signals
 `define R_TYPE  3'b000
@@ -24,6 +24,14 @@
 `define C_IM_TYPE  7'b0010011
 `define C_LW_TYPE  7'b0000011
 `define C_SW_TYPE  7'b0100011
-`define C_BEQ_TYPE 7'b1100011
+`define C_B_TYPE   7'b1100011
+
+`define OP_LUI     7'b0110111
+`define OP_AUIPC   7'b0010111
+`define OP_JAL     7'b1101111
+`define OP_JALR    7'b1100111
+
+
+
 
 

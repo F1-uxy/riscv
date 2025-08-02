@@ -10,7 +10,7 @@ module control_unit (
     output logic       mtreg,
     output logic       alu_src,
     output logic       pc_src,
-    output logic [2:0] instr_type
+    output logic [1:0] aluop
 );
     
 always_comb begin
@@ -21,35 +21,40 @@ always_comb begin
     mtreg      = 0;
     alu_src    = 0;
     pc_src     = 0;
-    instr_type = `R_TYPE;
+    aluop = `ALUOP_RTYPE;
 
     case (opcode)
         `C_R_TYPE: begin
             reg_we     = 1;
             alu_src    = 0;
-            instr_type = `R_TYPE;
+            aluop = `ALUOP_RTYPE;
         end
         `C_IM_TYPE: begin
             reg_we     = 1;
             alu_src    = 1;
-            instr_type = `I_TYPE;
+            aluop = `ALUOP_RTYPE;
         end
         `C_LW_TYPE: begin
             reg_we     = 1;
             dmu_re     = 1;
             mtreg      = 1;
             alu_src    = 1;
-            instr_type = `I_TYPE;
+            aluop = `ALUOP_LWSW;
         end
         `C_SW_TYPE: begin
             dmu_we     = 1;
             alu_src    = 1;
-            instr_type = `S_TYPE;
+            aluop = `ALUOP_LWSW;
         end
-        `C_BEQ_TYPE: begin
+        `C_B_TYPE: begin
             branch     = 1;
             alu_src    = 0;
-            instr_type = `SB_TYPE;
+            aluop = `ALUOP_BRANCH;
+        end
+        `OP_LUI: begin
+            reg_we = 1;
+            alu_src = 1;
+            mtreg = 0;
         end
         default: begin
             branch     = 0;
@@ -59,7 +64,7 @@ always_comb begin
             mtreg      = 0;
             alu_src    = 0;
             pc_src     = 0;
-            instr_type = `R_TYPE;
+            aluop = `ALUOP_RTYPE;
         end
     endcase
 end

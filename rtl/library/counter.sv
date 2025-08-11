@@ -14,7 +14,7 @@ always @(posedge(clk) or posedge reset) begin
     if (reset) begin
         out <= {WIDTH{1'b0}};
     end else begin
-        out <= out + inc;
+        out <= inc;
     end
 end
 

@@ -84,6 +84,7 @@ int main(int argc, char **argv) {
 
     step(datapath, m_trace, 1);
     step(datapath, m_trace, 2);
+    step(datapath, m_trace, 14);
 
     //run_test_program(datapath, m_trace, m_regs, m_dmu);
 

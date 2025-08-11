@@ -113,11 +113,43 @@ Write occurs in the first half of a clock cycle \& write occurs in the second ha
 #### Pipeline Register:
 Registers are need to hold inter-stage values for a successful pipeline:
 <ul>
-    <li> IF/ID  - 92b wide (32b Instruction + 64b PC Address)
-    <li> ID/EX  - 256b wide (64b Data 1 + 64b Data 2 + 64b Immediate Value + 64b PC Address)
-    <li> EX/MEM - 193b wide (64b PC Address + 64b ALU Result + 64b PC Address + 1b Zero Flag)
-    <li> MEM/WB - 128b wide (64b ALU result + 64b Data read)
+    <li> IF/ID  - 92b wide  (32b Instruction + 64b PC Address)
+    <li> ID/EX  - 261b wide (5b Register Select + 64b Data 1 + 64b Data 2 + 64b Immediate Value + 64b PC Address)
+    <li> EX/MEM - 198b wide (5b Register Select + 64b PC Address + 64b ALU Result + 64b Data 2 + 1b Zero Flag)
+    <li> MEM/WB - 133b wide (5b Register Select + 64b ALU result + 64b Data read)
 </ul>
+
+##### IF/ID Register:
+| Field       | Bits  | Description           |
+| ----------- | ----- | --------------------- |
+| PC          | 91:32 | Program Counter value |
+| Instruction | 31:0  | Current instruction   |
+
+
+##### ID/EX Register:
+| Field      | Bits    | Description                      |
+| ---------- | ------- | -------------------------------- |
+| Reg Select | 260:256 | Register Select                  |
+| PC         | 255:192 | Program Counter value            |
+| Data 1     | 191:128 | Register Data 1 port             |
+| Data 2     | 127:64  | Register Data 2 port             |
+| Immediate  | 63:0    | Immediate Generation Unit output |
+
+##### EX/MEM Register:
+| Field      | Bits    | Description               |
+| ---------- | ------- | ------------------------- |
+| Reg Select | 197:193 | Register Select           |
+| PC         | 192:129 | Program Counter sum value |
+| Zero Flag  | 128     | Zero Flag                 |
+| Alu Result | 127:64  | Alu result                |
+| Data 2     | 63:0    | Register Data 2 Port      |
+
+##### MEM/WB Register:
+| Field      | Bits    | Description        |
+| ---------- | ------- | ------------------ |
+| Reg Select | 132:128 | Register Select    |
+| Read Data  | 127:64  | DMU read data      |
+| Address    | 63:0    | Alu address result |
 
 #### Branching:
 For a pipelined branch we always assume that the branch is not taken. If the branch is taken then we are penalized with a stall

@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cassert>
+#include <cstdint>
 #include "Vdatapath.h"
 #include <verilated.h>
-#include <verilated_vcd_c.h>
+//#include <verilated_vcd_c.h>
+#include "verilated_fst_c.h"
 #include <stdint.h>
 #include "Vdatapath_register_file.h"
 #include "Vdatapath_dmu.h"
@@ -23,12 +25,33 @@ vluint64_t sim_time = 0;
         exit(1); \
     }
 
-static inline void tick(Vdatapath* datapath, VerilatedVcdC* trace) {
+template<int N>
+uint64_t get_bits(const VlWide<N>& wide, int hi, int lo) {
+    assert(hi >= lo);
+    assert(hi < N * 32);  // make sure we don't go out of range
+
+    uint64_t result = 0;
+    int width = hi - lo + 1;
+    int dst_bit = 0;
+
+    for (int bit = lo; bit <= hi; ++bit) {
+        int word_index = bit / 32;
+        int bit_in_word = bit % 32;
+        uint32_t word = wide[word_index];
+        uint64_t bit_val = (word >> bit_in_word) & 1ULL;
+        result |= (bit_val << dst_bit);
+        dst_bit++;
+    }
+
+    return result;
+}
+
+static inline void tick(Vdatapath* datapath, VerilatedFstC* trace) {
     datapath->clk = 0; datapath->eval(); trace->dump(sim_time++);
     datapath->clk = 1; datapath->eval(); trace->dump(sim_time++);
 }
 
-void step(Vdatapath* datapath, VerilatedVcdC* trace, int count)
+void step(Vdatapath* datapath, VerilatedFstC* trace, int count)
 {
     for(int i = 0; i < count; i++)
     {
@@ -36,7 +59,7 @@ void step(Vdatapath* datapath, VerilatedVcdC* trace, int count)
     }
 }
 
-void run_test_program(Vdatapath* datapath, VerilatedVcdC* m_trace, Vdatapath_register_file* m_regs, Vdatapath_dmu* m_dmu)
+void run_test_program(Vdatapath* datapath, VerilatedFstC* m_trace, Vdatapath_register_file* m_regs, Vdatapath_dmu* m_dmu)
 {
     step(datapath, m_trace, 14);  // enough cycles to execute full program
 
@@ -78,13 +101,13 @@ int main(int argc, char **argv) {
     Vdatapath_dmu* m_dmu = datapath->datapath->m_dmu;
 
     Verilated::traceEverOn(true);  // Enable VCD tracing
-    VerilatedVcdC* m_trace = new VerilatedVcdC;
+    VerilatedFstC* m_trace = new VerilatedFstC;
     datapath->trace(m_trace, 5);
-    m_trace->open("datapath.vcd");
-
+    m_trace->open("datapath.fst");
+    VlWide<3> reg_if = datapath->datapath->__PVT__reg_if;
     step(datapath, m_trace, 1);
     step(datapath, m_trace, 2);
-    step(datapath, m_trace, 14);
+    step(datapath, m_trace, 13);
 
     //run_test_program(datapath, m_trace, m_regs, m_dmu);
 

@@ -18,8 +18,8 @@ module datapath (
     assign funct3 = reg_if.instr[14:12];
 
     logic [63:0] reg_data_in;
-    logic [4:0] reg_sel;
-    assign reg_sel = reg_if.instr[11:7];
+    //logic [4:0] reg_sel;
+    //assign reg_sel = reg_if.instr[11:7];
 
     logic [63:0] b_out;
     logic [63:0] a_out;
@@ -208,17 +208,18 @@ module datapath (
     r_mem reg_mem, next_reg_mem;
 
     assign reg_data_in = reg_mem.control.wb.mtreg ? reg_mem.data_rd : reg_mem.alu_res;
-    assign alu_b = reg_id.control.ex.alu_src ? imm_out : reg_id.data_2;
+    assign alu_b = reg_id.control.ex.alu_src ? reg_id.imm : reg_id.data_2;
     assign c_pc_src = (reg_ex.control.mem.branch && reg_ex.f_zero);
     assign pc_inc =  c_pc_src ? reg_ex.pc : (pc_out + 64'd4);
-    assign opcode = instr[6:0];
+    assign opcode = reg_if.instr[6:0];
+    
 
     // Combinationally prepare next stage for registers
     always_comb begin
         next_reg_if.instr = instr;
         next_reg_if.pc = pc_out;
 
-        next_reg_id.reg_sel = reg_sel;
+        next_reg_id.reg_sel = instr[11:7]; // This works but it should latch from if.instr register but that delays it
         next_reg_id.data_1 = a_out;
         next_reg_id.data_2 = b_out;
         next_reg_id.imm = imm_out;

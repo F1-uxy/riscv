@@ -46,7 +46,7 @@ fi
 echo "Running Verilator on $SRC with testbench $TB..."
 
 # Step 1: Generate simulation files
-verilator --Wall --trace --cc "$SRC" --exe "$TB" -Irtl
+verilator --Wall --trace --trace-fst --trace-structs --cc "$SRC" --exe "$TB" -Irtl
 
 # Step 2: Build simulation binary
 make -C "$OBJDIR" -f "V${TOP}.mk" "V${TOP}"

@@ -1,7 +1,8 @@
 // Register File
 
 module register_file (
-    input logic        clk,
+    /* verilator lint_off UNUSEDSIGNAL */
+    input logic        clk, 
     input logic [4:0]  read_a,
     input logic [4:0]  read_b,
 
@@ -17,10 +18,10 @@ logic [63:0] regs [31:0] /* verilator public */;
 
 // Register x0 must always return 0 and is not writable
 always_ff @(posedge clk) begin
-        if (write_en && write_sel != 5'd0) begin
-            regs[write_sel] <= data;
-        end
+    if (write_en && write_sel != 5'd0) begin
+        regs[write_sel] <= data;
     end
+end
 
 assign out_a = (read_a == 5'd0) ? 64'd0 : regs[read_a];
 assign out_b = (read_b == 5'd0) ? 64'd0 : regs[read_b];

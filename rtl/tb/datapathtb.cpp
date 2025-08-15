@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
     VlWide<3> reg_if = datapath->datapath->__PVT__reg_if;
     step(datapath, m_trace, 1);
     step(datapath, m_trace, 2);
-    step(datapath, m_trace, 13);
+    step(datapath, m_trace, 30);
 
     //run_test_program(datapath, m_trace, m_regs, m_dmu);
 

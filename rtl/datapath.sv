@@ -135,7 +135,7 @@ module datapath (
 
     /* --- Immediate Generation Unit --- */
     igu m_igu (
-        .instr(instr),
+        .instr(reg_if.instr),
         
         .imm_out(imm_out)
     );
@@ -143,7 +143,7 @@ module datapath (
     /* --- Control Unit --- */
     logic [6:0] opcode;
 
-    logic c_branch, c_reg_we, c_dmu_we, c_dmu_re, c_mtreg, c_alu_src, c_pc_src;
+    logic c_branch, c_reg_we, c_dmu_we, c_dmu_re, c_mtreg, c_alu_src;
     logic [1:0] aluop;
     control_unit c_control_unit (
         .opcode(opcode),
@@ -154,7 +154,7 @@ module datapath (
         .dmu_re(c_dmu_re),
         .mtreg(c_mtreg),
         .alu_src(c_alu_src),
-        .pc_src(c_pc_src),
+        //.pc_src(c_pc_src),
         .aluop(aluop)
     );
 
@@ -207,11 +207,6 @@ module datapath (
 
     r_mem reg_mem, next_reg_mem;
 
-    assign reg_data_in = reg_mem.control.wb.mtreg ? reg_mem.data_rd : reg_mem.alu_res;
-    assign alu_b = reg_id.control.ex.alu_src ? reg_id.imm : reg_id.data_2;
-    assign c_pc_src = (reg_ex.control.mem.branch && reg_ex.f_zero);
-    assign pc_inc =  c_pc_src ? reg_ex.pc : (pc_out + 64'd4);
-    assign opcode = reg_if.instr[6:0];
     
 
     // Combinationally prepare next stage for registers
@@ -219,17 +214,17 @@ module datapath (
         next_reg_if.instr = instr;
         next_reg_if.pc = pc_out;
 
-        next_reg_id.reg_sel = instr[11:7]; // This works but it should latch from if.instr register but that delays it
-        next_reg_id.data_1 = a_out;
-        next_reg_id.data_2 = b_out;
-        next_reg_id.imm = imm_out;
-        next_reg_id.pc = reg_if.pc;
-        next_reg_id.control.ex.alu_src = c_alu_src;
-        next_reg_id.control.ex.aluop = aluop;
-        next_reg_id.control.mem.branch = c_branch;
-        next_reg_id.control.mem.mem_we = c_dmu_we;
-        next_reg_id.control.mem.mem_re = c_dmu_re;
-        next_reg_id.control.wb.mtreg = c_mtreg;
+        next_reg_id.reg_sel           = reg_if.instr[11:7];
+        next_reg_id.data_1            = a_out;     // a_out/b_out should be from reads using reg_if.rs1/rs2 (you already do)
+        next_reg_id.data_2            = b_out;
+        next_reg_id.imm               = imm_out;
+        next_reg_id.pc                = reg_if.pc;
+        next_reg_id.control.ex.aluop  = aluop;
+        next_reg_id.control.ex.alu_src= c_alu_src;
+        next_reg_id.control.mem.branch= c_branch;
+        next_reg_id.control.mem.mem_we= c_dmu_we;
+        next_reg_id.control.mem.mem_re= c_dmu_re;
+        next_reg_id.control.wb.mtreg  = c_mtreg;
         next_reg_id.control.wb.reg_we = c_reg_we;
 
         next_reg_ex.reg_sel = reg_id.reg_sel;
@@ -248,7 +243,13 @@ module datapath (
         next_reg_mem.data_rd = dmu_out;
         next_reg_mem.control.wb.mtreg = reg_ex.control.wb.mtreg;
         next_reg_mem.control.wb.reg_we = reg_ex.control.wb.reg_we;
+
+        reg_data_in = reg_mem.control.wb.mtreg ? reg_mem.data_rd : reg_mem.alu_res;
+        alu_b = reg_id.control.ex.alu_src ? reg_id.imm : reg_id.data_2;
+        pc_inc =  (reg_ex.control.mem.branch && reg_ex.f_zero) ? reg_ex.pc : (pc_out + 64'd4);
+        opcode = reg_if.instr[6:0];
     end
+
 
     always_ff @( posedge(clk) or posedge(reset)) begin
         if(reset) begin
@@ -263,5 +264,8 @@ module datapath (
             reg_mem <= next_reg_mem;
         end
     end
+
+    
+
 
 endmodule

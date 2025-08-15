@@ -100,7 +100,7 @@ The rs2 and rs1 values are always in the same location for hardware simplicity t
     <li> WB: Write the result back into a register (optional)
 </ol>
 
-Write occurs in the first half of a clock cycle \& write occurs in the second half
+Write occurs in the first half of a clock cycle \& read occurs in the second half
 
 #### Instructions:
 | Instruction           | Fetch | Register Read | ALU operation | Data Access | Register Write |
@@ -158,4 +158,7 @@ Dynamic branch prediction takes into account the success of the previous branch 
 
 #### Useful Websites:
 https://luplab.gitlab.io/rvcodecjs/
+
 https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html
+
+https://www.itsembedded.com/dhd/verilator_1/

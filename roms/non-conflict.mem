@@ -1,0 +1,8 @@
+00000093    // addi x1, x0, 0      ; x1 = 0
+00500113    // addi x2, x0, 5      ; x2 = 5
+00a00193    // addi x3, x0, 10     ; x3 = 10
+00400213    // addi x4, x0, 4      ; x4 = 4
+002182b3    // add  x5, x3, x2     ; x5 = 15 (uses x3,x2 set well before)
+001202b3    // add  x5, x4, x1     ; x5 = 4 (again no immediate hazard)
+00700293    // addi x5, x0, 7      ; x5 = 7
+00320333    // add  x6, x4, x3     ; x6 = 14

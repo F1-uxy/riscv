@@ -1,4 +1,11 @@
-## Risc-V CPU Implmented in SystemVerilog
+## RISC-V CPU Implmented in SystemVerilog
+
+<ul>
+    <li> Main branch includes single-cycle 64 bit RISC-V core
+    <li> Pipeline branch includes pipelined 64 bit RISC-V core
+</ul>
+
+Verilator tests are included
 
 ### Instruction Format:
 There are 6 formats of instruction:
@@ -65,7 +72,7 @@ There are 6 formats of instruction:
 | immediate[11]    | 1 bit (bit 7)    | Bit 11 of immediate                |
 | opcode           | 7 bits (bits 6-0) | Basic opcode of the instruction   |
 
-> Note: The 12-bit immediate in SB-type is assembled from several fields and then shifted left by 
+> Note: The 12-bit immediate in SB-type is assembled from several fields and then shifted left
 
 The rs2 and rs1 values are always in the same location for hardware simplicity therefore, the immediate value must be split into 2 parts.
 
@@ -100,7 +107,7 @@ The rs2 and rs1 values are always in the same location for hardware simplicity t
     <li> Write the result into a register (optional)
 </ol>
 
-Write occurs in the first half of a clock cycle \& write occurs in the second half
+Write occurs in the first half of a clock cycle \& read occurs in the second half
 
 #### Instructions:
 | Instruction           | Fetch | Register Read | ALU operation | Data Access | Register Write |

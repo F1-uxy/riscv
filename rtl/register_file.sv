@@ -16,6 +16,9 @@ module register_file (
 
 logic [63:0] regs [31:0] /* verilator public */;
 
+// Write on positive edge 
+// Read on negative edge
+
 // Register x0 must always return 0 and is not writable
 always_ff @(posedge clk) begin
     if (write_en && write_sel != 5'd0) begin
@@ -23,7 +26,9 @@ always_ff @(posedge clk) begin
     end
 end
 
-assign out_a = (read_a == 5'd0) ? 64'd0 : regs[read_a];
-assign out_b = (read_b == 5'd0) ? 64'd0 : regs[read_b];
+always_ff @( negedge clk ) begin
+    out_a <= (read_a == 5'd0) ? 64'd0 : regs[read_a];
+    out_b <= (read_b == 5'd0) ? 64'd0 : regs[read_b]; 
+end
 
 endmodule

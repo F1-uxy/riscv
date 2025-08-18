@@ -18,12 +18,11 @@ module datapath (
     assign funct3 = reg_if.instr[14:12];
 
     logic [63:0] reg_data_in;
-    //logic [4:0] reg_sel;
-    //assign reg_sel = reg_if.instr[11:7];
+
+    logic alu_b_fwd;
 
     logic [63:0] b_out;
     logic [63:0] a_out;
-
 
     logic [63:0] dmu_out;
 
@@ -67,6 +66,8 @@ module datapath (
     } r_if;
 
     typedef struct packed {
+        logic [63:0] rs1;
+        logic [63:0] rs2;
         logic [4:0] reg_sel;
         logic [63:0] data_1;
         logic [63:0] data_2;
@@ -154,8 +155,17 @@ module datapath (
         .dmu_re(c_dmu_re),
         .mtreg(c_mtreg),
         .alu_src(c_alu_src),
-        //.pc_src(c_pc_src),
         .aluop(aluop)
+    );
+
+    logic stall;
+    hdu c_hdu (
+        .id_mem_rd     (reg_id.control.mem.mem_re),
+        .id_reg_sel    (reg_if.instr[11:7]),
+        .id_rs1        (reg_if.instr[19:15]),
+        .id_rs2        (reg_if.instr[24:20]),
+        
+        .stall        (stall)
     );
 
     r_id reg_id, next_reg_id;
@@ -166,13 +176,13 @@ module datapath (
 
     /* --- ALU --- */
     logic [3:0] alu_op;
-    logic [63:0] alu_b;
+    logic [63:0] alu_a, alu_b;
     logic [63:0] alu_out;
     logic f_zero;
     /* verilator lint_off PINMISSING */
     alu c_alu (
         .alucontrol(alu_op),
-        .rs1(reg_id.data_1),
+        .rs1(alu_a),
         .rs2(alu_b),
 
         .result(alu_out),
@@ -187,6 +197,19 @@ module datapath (
 
         .alucontrol(alu_op)
     );
+
+    logic [2:0] fwd_a, fwd_b;
+    forwarding_unit c_fwd (
+    .ex_reg_rd     (reg_ex.reg_sel),
+    .ex_reg_wr     (reg_ex.control.wb.reg_we),
+    .mem_reg_rd    (reg_mem.reg_sel),
+    .mem_reg_wr    (reg_mem.control.wb.reg_we),
+    .id_rs1        (reg_id.rs1),
+    .id_rs2        (reg_id.rs2),
+
+    .forward_a     (fwd_a),
+    .forward_b     (fwd_b)
+);
 
     r_ex reg_ex, next_reg_ex;
 
@@ -214,18 +237,20 @@ module datapath (
         next_reg_if.instr = instr;
         next_reg_if.pc = pc_out;
 
-        next_reg_id.reg_sel           = reg_if.instr[11:7];
-        next_reg_id.data_1            = a_out;     // a_out/b_out should be from reads using reg_if.rs1/rs2 (you already do)
-        next_reg_id.data_2            = b_out;
-        next_reg_id.imm               = imm_out;
-        next_reg_id.pc                = reg_if.pc;
-        next_reg_id.control.ex.aluop  = aluop;
-        next_reg_id.control.ex.alu_src= c_alu_src;
-        next_reg_id.control.mem.branch= c_branch;
-        next_reg_id.control.mem.mem_we= c_dmu_we;
-        next_reg_id.control.mem.mem_re= c_dmu_re;
-        next_reg_id.control.wb.mtreg  = c_mtreg;
-        next_reg_id.control.wb.reg_we = c_reg_we;
+        next_reg_id.rs1                = reg_if.instr[19:15];
+        next_reg_id.rs2                = reg_if.instr[24:20];
+        next_reg_id.reg_sel            = reg_if.instr[11:7];
+        next_reg_id.data_1             = a_out;
+        next_reg_id.data_2             = b_out;
+        next_reg_id.imm                = imm_out;
+        next_reg_id.pc                 = reg_if.pc;
+        next_reg_id.control.ex.aluop   = aluop;
+        next_reg_id.control.ex.alu_src = c_alu_src;
+        next_reg_id.control.mem.branch = c_branch;
+        next_reg_id.control.mem.mem_we = c_dmu_we;
+        next_reg_id.control.mem.mem_re = c_dmu_re;
+        next_reg_id.control.wb.mtreg   = c_mtreg;
+        next_reg_id.control.wb.reg_we  = c_reg_we;
 
         next_reg_ex.reg_sel = reg_id.reg_sel;
         next_reg_ex.pc = (reg_id.pc + (reg_id.imm << 1));
@@ -245,8 +270,16 @@ module datapath (
         next_reg_mem.control.wb.reg_we = reg_ex.control.wb.reg_we;
 
         reg_data_in = reg_mem.control.wb.mtreg ? reg_mem.data_rd : reg_mem.alu_res;
-        alu_b = reg_id.control.ex.alu_src ? reg_id.imm : reg_id.data_2;
-        pc_inc =  (reg_ex.control.mem.branch && reg_ex.f_zero) ? reg_ex.pc : (pc_out + 64'd4);
+        alu_a = (fwd_a == 2'b00) ? reg_id.data_1 :
+                (fwd_a == 2'b01) ? reg_data_in :
+                (fwd_a == 2'b10) ? reg_ex.alu_res :
+                64'b0;
+        alu_b_fwd = (fwd_b == 2'b00) ? reg_id.data_2 :
+                    (fwd_b == 2'b01) ? reg_data_in :
+                    (fwd_b == 2'b10) ? reg_ex.alu_res :
+                    64'b0;
+        alu_b = reg_id.control.ex.alu_src ? reg_id.imm : alu_b_fwd;
+        pc_inc =  stall ? pc_out : ((reg_ex.control.mem.branch && reg_ex.f_zero) ? reg_ex.pc : (pc_out + 64'd4));
         opcode = reg_if.instr[6:0];
     end
 

@@ -114,7 +114,7 @@ Write occurs in the first half of a clock cycle \& read occurs in the second hal
 Registers are need to hold inter-stage values for a successful pipeline:
 <ul>
     <li> IF/ID  - 92b wide  (32b Instruction + 64b PC Address)
-    <li> ID/EX  - 261b wide (5b Register Select + 64b Data 1 + 64b Data 2 + 64b Immediate Value + 64b PC Address)
+    <li> ID/EX  - 389b wide (5b Register Select + 64b Data 1 + 64b Data 2 + 64b Immediate Value + 64b PC Address + 64b Rs1 + 64b Rs2)
     <li> EX/MEM - 198b wide (5b Register Select + 64b PC Address + 64b ALU Result + 64b Data 2 + 1b Zero Flag)
     <li> MEM/WB - 133b wide (5b Register Select + 64b ALU result + 64b Data read)
 </ul>
@@ -129,6 +129,8 @@ Registers are need to hold inter-stage values for a successful pipeline:
 ##### ID/EX Register:
 | Field      | Bits    | Description                      |
 | ---------- | ------- | -------------------------------- |
+| Rs1        | 388:325 | Register output 1                |
+| Rs2        | 324:261 | Register output 2                |
 | Reg Select | 260:256 | Register Select                  |
 | PC         | 255:192 | Program Counter value            |
 | Data 1     | 191:128 | Register Data 1 port             |
@@ -150,6 +152,19 @@ Registers are need to hold inter-stage values for a successful pipeline:
 | Reg Select | 132:128 | Register Select    |
 | Read Data  | 127:64  | DMU read data      |
 | Address    | 63:0    | Alu address result |
+
+#### Forwarding
+Forwarding is done by the forwarding unit to forward values through the pipeline registers.
+
+| Control        | Source | Description                                                                   |
+| -------------- | ------ | ----------------------------------------------------------------------------- |
+| forward_a = 00 | ID/EX  | The first ALU operand comes from the register file                            |
+| forward_a = 10 | EX/MEM | The first ALU operand is forwarded from the prior ALU result                  |
+| forward_a = 01 | MEM/WB | The first ALU operand is forwarded from data memory or an earlier ALU result  |
+| forward_b = 00 | ID/EX  | The second ALU operand comes from the register file                           |
+| forward_b = 10 | EX/MEM | The second ALU operand is forwarded from the prior ALU result                 |
+| forward_b = 01 | MEM/WB | The second ALU operand is forwarded from data memory or an earlier ALU result |
+
 
 #### Branching:
 For a pipelined branch we always assume that the branch is not taken. If the branch is taken then we are penalized with a stall

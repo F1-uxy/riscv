@@ -129,9 +129,9 @@ Registers are need to hold inter-stage values for a successful pipeline:
 ##### ID/EX Register:
 | Field      | Bits    | Description                      |
 | ---------- | ------- | -------------------------------- |
-| Rs1        | 388:325 | Register output 1                |
-| Rs2        | 324:261 | Register output 2                |
-| Reg Select | 260:256 | Register Select                  |
+| Rs1        | 270:266 | Input register select 1          |
+| Rs2        | 265:261 | Input register select 2          |
+| Reg Select | 260:256 | Output register select           |
 | PC         | 255:192 | Program Counter value            |
 | Data 1     | 191:128 | Register Data 1 port             |
 | Data 2     | 127:64  | Register Data 2 port             |
@@ -169,7 +169,7 @@ Forwarding is done by the forwarding unit to forward values through the pipeline
 #### Branching:
 For a pipelined branch we always assume that the branch is not taken. If the branch is taken then we are penalized with a stall
 
-Dynamic branch prediction takes into account the success of the previous branch predictions for future predictions
+For a less wasteful branching mechanism we move the branch adder from the EX stage to the ID stage to reduce the cost of a branch taken. This does add extra forwarding and hazard detection logic as we much check the rest of the pipeline for any results related to the branch instruction.
 
 #### Useful Websites:
 https://luplab.gitlab.io/rvcodecjs/

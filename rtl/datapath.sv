@@ -19,7 +19,7 @@ module datapath (
 
     logic [63:0] reg_data_in;
 
-    logic alu_b_fwd;
+    logic [63:0] alu_b_fwd;
 
     logic [63:0] b_out;
     logic [63:0] a_out;
@@ -66,8 +66,8 @@ module datapath (
     } r_if;
 
     typedef struct packed {
-        logic [63:0] rs1;
-        logic [63:0] rs2;
+        logic [4:0] rs1;
+        logic [4:0] rs2;
         logic [4:0] reg_sel;
         logic [63:0] data_1;
         logic [63:0] data_2;
@@ -144,7 +144,7 @@ module datapath (
     /* --- Control Unit --- */
     logic [6:0] opcode;
 
-    logic c_branch, c_reg_we, c_dmu_we, c_dmu_re, c_mtreg, c_alu_src;
+    logic c_branch, c_reg_we, c_dmu_we, c_dmu_re, c_mtreg, c_alu_src, c_flush;
     logic [1:0] aluop;
     control_unit c_control_unit (
         .opcode(opcode),
@@ -198,7 +198,7 @@ module datapath (
         .alucontrol(alu_op)
     );
 
-    logic [2:0] fwd_a, fwd_b;
+    logic [1:0] fwd_a, fwd_b;
     forwarding_unit c_fwd (
     .ex_reg_rd     (reg_ex.reg_sel),
     .ex_reg_wr     (reg_ex.control.wb.reg_we),
@@ -291,7 +291,10 @@ module datapath (
             reg_ex  <= '0;
             reg_mem <= '0;
         end else begin
-            reg_if <= next_reg_if;
+            if (next_reg_if.) begin
+                reg_if <= '0;
+            end else reg_if <= next_reg_if;
+            
             reg_id <= next_reg_id;
             reg_ex <= next_reg_ex;
             reg_mem <= next_reg_mem;

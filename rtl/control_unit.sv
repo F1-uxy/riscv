@@ -9,7 +9,7 @@ module control_unit (
     output logic       dmu_re,
     output logic       mtreg,
     output logic       alu_src,
-    //output logic       pc_src,
+    output logic       flush,
     output logic [1:0] aluop
 );
     
@@ -20,7 +20,7 @@ always_comb begin
     dmu_re     = 0;
     mtreg      = 0;
     alu_src    = 0;
-    //pc_src     = 0;
+    flush      = 0;
     aluop = `ALUOP_RTYPE;
 
     case (opcode)
@@ -68,7 +68,7 @@ always_comb begin
             dmu_re     = 0;
             mtreg      = 0;
             alu_src    = 0;
-            //pc_src     = 0;
+            flush     = 0;
             aluop = `ALUOP_RTYPE;
         end
     endcase

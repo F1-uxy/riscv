@@ -1,8 +1,8 @@
 module hdu (
     input logic       id_mem_rd,
     input logic [4:0] id_reg_sel,
-    input logic       id_rs1,
-    input logic       id_rs2,
+    input logic [4:0] id_rs1,
+    input logic [4:0] id_rs2,
 
     output logic stall
 );

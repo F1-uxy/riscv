@@ -155,6 +155,7 @@ module datapath (
         .dmu_re(c_dmu_re),
         .mtreg(c_mtreg),
         .alu_src(c_alu_src),
+        .flush(c_flush),
         .aluop(aluop)
     );
 
@@ -291,7 +292,7 @@ module datapath (
             reg_ex  <= '0;
             reg_mem <= '0;
         end else begin
-            if (next_reg_if.) begin
+            if (c_flush) begin
                 reg_if <= '0;
             end else reg_if <= next_reg_if;
             

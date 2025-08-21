@@ -68,7 +68,7 @@ always_comb begin
             dmu_re     = 0;
             mtreg      = 0;
             alu_src    = 0;
-            flush     = 0;
+            flush      = 0;
             aluop = `ALUOP_RTYPE;
         end
     endcase

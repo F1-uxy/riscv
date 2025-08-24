@@ -9,13 +9,7 @@ module datapath (
 
     logic [4:0] rs1;
     logic [4:0] rs2;
-    assign rs1 = reg_if.instr[19:15];
-    assign rs2 = reg_if.instr[24:20];
-
-    logic [6:0] funct7;
-    logic [2:0] funct3;
-    assign funct7 = reg_if.instr[31:25];
-    assign funct3 = reg_if.instr[14:12];
+    
 
     logic [63:0] reg_data_in;
 
@@ -66,6 +60,8 @@ module datapath (
     } r_if;
 
     typedef struct packed {
+        logic [2:0] funct3;
+        logic [6:0] funct7;
         logic [4:0] rs1;
         logic [4:0] rs2;
         logic [4:0] reg_sel;
@@ -192,8 +188,8 @@ module datapath (
 
     /* --- ALU Control Unit --- */
     alu_cont c_alu_cont (
-        .funct7(funct7),
-        .funct3(funct3),
+        .funct7(reg_id.funct7),
+        .funct3(reg_id.funct3),
         .aluop(reg_id.control.ex.aluop),
 
         .alucontrol(alu_op)
@@ -241,6 +237,8 @@ module datapath (
         next_reg_id.rs1                = reg_if.instr[19:15];
         next_reg_id.rs2                = reg_if.instr[24:20];
         next_reg_id.reg_sel            = reg_if.instr[11:7];
+        next_reg_id.funct7             = reg_if.instr[31:25];
+        next_reg_id.funct3             = reg_if.instr[14:12];
         next_reg_id.data_1             = a_out;
         next_reg_id.data_2             = b_out;
         next_reg_id.imm                = imm_out;
@@ -261,8 +259,8 @@ module datapath (
         next_reg_ex.control.mem.branch = reg_id.control.mem.branch;
         next_reg_ex.control.mem.mem_we = reg_id.control.mem.mem_we;
         next_reg_ex.control.mem.mem_re = reg_id.control.mem.mem_re;
-        next_reg_ex.control.wb.mtreg = reg_id.control.wb.mtreg;
-        next_reg_ex.control.wb.reg_we = reg_id.control.wb.reg_we;
+        next_reg_ex.control.wb.mtreg   = reg_id.control.wb.mtreg;
+        next_reg_ex.control.wb.reg_we  = reg_id.control.wb.reg_we;
 
         next_reg_mem.reg_sel = reg_ex.reg_sel;
         next_reg_mem.alu_res = reg_ex.alu_res;
@@ -271,6 +269,8 @@ module datapath (
         next_reg_mem.control.wb.reg_we = reg_ex.control.wb.reg_we;
 
         reg_data_in = reg_mem.control.wb.mtreg ? reg_mem.data_rd : reg_mem.alu_res;
+        rs1 = reg_if.instr[19:15];
+        rs2 = reg_if.instr[24:20];
         alu_a = (fwd_a == 2'b00) ? reg_id.data_1 :
                 (fwd_a == 2'b01) ? reg_data_in :
                 (fwd_a == 2'b10) ? reg_ex.alu_res :

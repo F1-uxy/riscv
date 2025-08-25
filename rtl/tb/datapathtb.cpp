@@ -105,6 +105,9 @@ int main(int argc, char **argv) {
     datapath->trace(m_trace, 5);
     m_trace->open("datapath.fst");
     VlWide<3> reg_if = datapath->datapath->__PVT__reg_if;
+    datapath->reset = 1;
+    step(datapath, m_trace, 1);
+    datapath->reset = 0;
     step(datapath, m_trace, 1);
     step(datapath, m_trace, 2);
     step(datapath, m_trace, 30);

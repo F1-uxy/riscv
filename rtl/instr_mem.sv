@@ -19,9 +19,14 @@ initial begin
 
 end
 
+/*
 always_comb begin
     // Address must be word aligned
     instruction = mem[addr[17:2]];
+end*/
+
+always @(negedge(clk)) begin
+    instruction <= mem[addr[17:2]];
 end
 
 endmodule

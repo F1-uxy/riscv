@@ -60,6 +60,7 @@ module datapath (
     } r_if;
 
     typedef struct packed {
+        logic [31:0] instr;
         logic [2:0] funct3;
         logic [6:0] funct7;
         logic [4:0] rs1;
@@ -73,6 +74,7 @@ module datapath (
     } r_id;
 
     typedef struct packed {
+        logic [31:0] instr;
         logic [4:0] reg_sel;
         logic [63:0] pc;
         logic [63:0] alu_res;
@@ -82,6 +84,7 @@ module datapath (
     } r_ex;
 
     typedef struct packed {
+        logic [31:0] instr;
         logic [4:0] reg_sel;
         logic [63:0] alu_res;
         logic [63:0] data_rd;
@@ -109,7 +112,7 @@ module datapath (
         .addr(pc_out),
         .instruction(instr)
     );
-
+    /* verilator lint_off UNUSEDSIGNAL */
     r_if reg_if, next_reg_if;
 
 
@@ -164,7 +167,7 @@ module datapath (
         
         .stall        (stall)
     );
-
+/* verilator lint_off UNUSEDSIGNAL */
     r_id reg_id, next_reg_id;
 
     /*
@@ -207,7 +210,7 @@ module datapath (
     .forward_a     (fwd_a),
     .forward_b     (fwd_b)
 );
-
+/* verilator lint_off UNUSEDSIGNAL */
     r_ex reg_ex, next_reg_ex;
 
     /*
@@ -224,7 +227,7 @@ module datapath (
         
         .data_out(dmu_out)
     );
-
+/* verilator lint_off UNUSEDSIGNAL */
     r_mem reg_mem, next_reg_mem;
 
     
@@ -234,6 +237,7 @@ module datapath (
         next_reg_if.instr = instr;
         next_reg_if.pc = pc_out;
 
+        next_reg_id.instr = reg_if.instr;
         next_reg_id.rs1                = reg_if.instr[19:15];
         next_reg_id.rs2                = reg_if.instr[24:20];
         next_reg_id.reg_sel            = reg_if.instr[11:7];
@@ -251,6 +255,7 @@ module datapath (
         next_reg_id.control.wb.mtreg   = c_mtreg;
         next_reg_id.control.wb.reg_we  = c_reg_we;
 
+        next_reg_ex.instr = reg_id.instr;
         next_reg_ex.reg_sel = reg_id.reg_sel;
         next_reg_ex.pc = (reg_id.pc + (reg_id.imm << 1));
         next_reg_ex.alu_res = alu_out;
@@ -262,13 +267,14 @@ module datapath (
         next_reg_ex.control.wb.mtreg   = reg_id.control.wb.mtreg;
         next_reg_ex.control.wb.reg_we  = reg_id.control.wb.reg_we;
 
+        next_reg_mem.instr = reg_ex.instr;
         next_reg_mem.reg_sel = reg_ex.reg_sel;
         next_reg_mem.alu_res = reg_ex.alu_res;
         next_reg_mem.data_rd = dmu_out;
         next_reg_mem.control.wb.mtreg = reg_ex.control.wb.mtreg;
         next_reg_mem.control.wb.reg_we = reg_ex.control.wb.reg_we;
 
-        reg_data_in = reg_mem.control.wb.mtreg ? reg_mem.data_rd : reg_mem.alu_res;
+        
         rs1 = reg_if.instr[19:15];
         rs2 = reg_if.instr[24:20];
         alu_a = (fwd_a == 2'b00) ? reg_id.data_1 :
@@ -303,6 +309,6 @@ module datapath (
     end
 
     
-
+assign reg_data_in = reg_mem.control.wb.mtreg ? reg_mem.data_rd : reg_mem.alu_res;
 
 endmodule

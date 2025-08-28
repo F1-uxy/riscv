@@ -199,6 +199,7 @@ module datapath (
     );
 
     logic [1:0] fwd_a, fwd_b;
+    logic forward_id_rs1, forward_id_rs2;
     forwarding_unit c_fwd (
     .ex_reg_rd     (reg_ex.reg_sel),
     .ex_reg_wr     (reg_ex.control.wb.reg_we),
@@ -208,7 +209,9 @@ module datapath (
     .id_rs2        (reg_id.rs2),
 
     .forward_a     (fwd_a),
-    .forward_b     (fwd_b)
+    .forward_b     (fwd_b),
+    .forward_id_rs1(forward_id_rs1),
+    .forward_id_rs2(forward_id_rs2)
 );
 /* verilator lint_off UNUSEDSIGNAL */
     r_ex reg_ex, next_reg_ex;
@@ -243,8 +246,8 @@ module datapath (
         next_reg_id.reg_sel            = reg_if.instr[11:7];
         next_reg_id.funct7             = reg_if.instr[31:25];
         next_reg_id.funct3             = reg_if.instr[14:12];
-        next_reg_id.data_1             = a_out;
-        next_reg_id.data_2             = b_out;
+        next_reg_id.data_1             = forward_id_rs1 ? reg_data_in : a_out;
+        next_reg_id.data_2             = forward_id_rs2 ? reg_data_in : b_out;
         next_reg_id.imm                = imm_out;
         next_reg_id.pc                 = reg_if.pc;
         next_reg_id.control.ex.aluop   = aluop;

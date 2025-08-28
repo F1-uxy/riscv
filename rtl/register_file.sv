@@ -26,9 +26,13 @@ always_ff @(posedge clk) begin
     end
 end
 
+
+assign out_a = (read_a == 0) ? 64'd0 : regs[read_a];
+assign out_b = (read_b == 0) ? 64'd0 : regs[read_b];
+/*
 always_ff @( negedge clk ) begin
     out_a <= (read_a == 5'd0) ? 64'd0 : regs[read_a];
     out_b <= (read_b == 5'd0) ? 64'd0 : regs[read_b]; 
 end
-
+*/
 endmodule

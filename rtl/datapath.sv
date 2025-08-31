@@ -301,11 +301,14 @@ module datapath (
             reg_ex  <= '0;
             reg_mem <= '0;
         end else begin
-            if (c_flush) begin
+            if (c_flush || (next_reg_ex.control.mem.branch && next_reg_ex.f_zero)) begin
                 reg_if <= '0;
             end else reg_if <= next_reg_if;
-            
-            reg_id <= next_reg_id;
+
+            if(next_reg_ex.control.mem.branch && next_reg_ex.f_zero) begin
+                reg_id <= '0;
+            end else reg_id <= next_reg_id;
+                            
             reg_ex <= next_reg_ex;
             reg_mem <= next_reg_mem;
         end

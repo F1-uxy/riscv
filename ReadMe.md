@@ -171,6 +171,12 @@ For a pipelined branch we always assume that the branch is not taken. If the bra
 
 For a less wasteful branching mechanism we move the branch adder from the EX stage to the ID stage to reduce the cost of a branch taken. This does add extra forwarding and hazard detection logic as we much check the rest of the pipeline for any results related to the branch instruction.
 
+#### Exceptions:
+Not all exceptions are interrupts but all interrupts are exceptions.
+
+Exception: An unscheduled event that disrupts program execptions
+Interrupt: An exception that comes from outside of the processor
+
 #### Useful Websites:
 https://luplab.gitlab.io/rvcodecjs/
 

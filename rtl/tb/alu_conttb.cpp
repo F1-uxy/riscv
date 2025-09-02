@@ -3,7 +3,7 @@
 #include <cassert>
 #include "Valu_cont.h"
 #include <verilated.h>
-#include <verilated_vcd_c.h>
+#include <verilated_fst_c.h>
 #include <stdint.h>
 
 #include "parameters.h"
@@ -18,7 +18,7 @@ vluint64_t sim_time = 0;
         exit(1); \
     }
 
-void step(Valu_cont* alu_cont, VerilatedVcdC* trace, int cycles = MAX_CYCLES) {
+void step(Valu_cont* alu_cont, VerilatedFstC* trace, int cycles = MAX_CYCLES) {
     for (int i = 0; i < cycles; ++i) {
         alu_cont->eval();
         if (trace) trace->dump(sim_time);
@@ -26,7 +26,7 @@ void step(Valu_cont* alu_cont, VerilatedVcdC* trace, int cycles = MAX_CYCLES) {
     }
 }
 
-void test_rtype(Valu_cont* alu_cont, VerilatedVcdC* trace) {
+void test_rtype(Valu_cont* alu_cont, VerilatedFstC* trace) {
     std::cout << "Requesting R-Type ALU ADD signal:\n";
 
     alu_cont->aluop = ALUOP_RTYPE;
@@ -67,7 +67,7 @@ void test_rtype(Valu_cont* alu_cont, VerilatedVcdC* trace) {
     CHECK(alu_cont->alucontrol, ALU_OR);
 }
 
-void test_branch(Valu_cont* alu_cont, VerilatedVcdC* trace) {
+void test_branch(Valu_cont* alu_cont, VerilatedFstC* trace) {
     std::cout << "Requesting Branch ALU ADD signal:\n";
 
     alu_cont->aluop = ALUOP_BRANCH;
@@ -76,7 +76,7 @@ void test_branch(Valu_cont* alu_cont, VerilatedVcdC* trace) {
     CHECK(alu_cont->alucontrol, ALU_SUB);
 }
 
-void test_lwsw(Valu_cont* alu_cont, VerilatedVcdC* trace) {
+void test_lwsw(Valu_cont* alu_cont, VerilatedFstC* trace) {
     std::cout << "Requesting LWSW ALU ADD signal:\n";
 
     alu_cont->aluop = ALUOP_LWSW;
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
     Valu_cont* alu_cont = new Valu_cont;
 
     Verilated::traceEverOn(true);  // Enable VCD tracing
-    VerilatedVcdC* m_trace = new VerilatedVcdC;
+    VerilatedFstC* m_trace = new VerilatedFstC;
     alu_cont->trace(m_trace, 5);
     m_trace->open("waveform.vcd");
 

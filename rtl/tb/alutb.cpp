@@ -3,7 +3,7 @@
 #include <cassert>
 #include "Valu.h"
 #include <verilated.h>
-#include <verilated_vcd_c.h>
+#include <verilated_fst_c.h>
 #include <stdint.h>
 
 #include "parameters.h"
@@ -18,7 +18,7 @@ vluint64_t sim_time = 0;
         exit(1); \
     }
 
-void step(Valu* alu, VerilatedVcdC* trace, int cycles = MAX_CYCLES) {
+void step(Valu* alu, VerilatedFstC* trace, int cycles = MAX_CYCLES) {
     for (int i = 0; i < cycles; ++i) {
         alu->eval();
         if (trace) trace->dump(sim_time);
@@ -26,7 +26,7 @@ void step(Valu* alu, VerilatedVcdC* trace, int cycles = MAX_CYCLES) {
     }
 }
 
-void test_add(Valu* alu, VerilatedVcdC* trace) {
+void test_add(Valu* alu, VerilatedFstC* trace) {
     std::cout << "Running test: 5 + 10\n";
     alu->alucontrol = ALU_ADD;
     alu->rs1 = 0x0005;
@@ -35,7 +35,7 @@ void test_add(Valu* alu, VerilatedVcdC* trace) {
     CHECK(alu->result, 0x000F);
 }
 
-void test_sub(Valu* alu, VerilatedVcdC* trace) {
+void test_sub(Valu* alu, VerilatedFstC* trace) {
     std::cout << "Running test: 10 - 5\n";
     alu->alucontrol = ALU_SUB;
     alu->rs1 = 0x000A;
@@ -49,7 +49,7 @@ void test_sub(Valu* alu, VerilatedVcdC* trace) {
     CHECK(alu->result, (int)0xFFFFFFFB);
 }
 
-void test_and(Valu* alu, VerilatedVcdC* trace) {
+void test_and(Valu* alu, VerilatedFstC* trace) {
     std::cout << "Running test: 0xAAAA & 0x5555\n";
     alu->alucontrol = ALU_AND;
     alu->rs1 = 0xAAAA;
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     Valu* alu = new Valu;
 
     Verilated::traceEverOn(true);  // Enable VCD tracing
-    VerilatedVcdC* m_trace = new VerilatedVcdC;
+    VerilatedFstC* m_trace = new VerilatedFstC;
     alu->trace(m_trace, 5);
     m_trace->open("waveform.vcd");
 

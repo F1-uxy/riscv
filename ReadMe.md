@@ -177,9 +177,17 @@ Not all exceptions are interrupts but all interrupts are exceptions.
 Exception: An unscheduled event that disrupts program execptions
 Interrupt: An exception that comes from outside of the processor
 
+##### Exception Registers:
+<ul>
+    <li> Supervisor Exception Cause Register (SCAUSE) - Holds a field that indicates the reason for the exception
+    <li> 
+</ul>
+
+Vectored Interrupts: The address to which control is transferred is determined by the cause of the exception, possibly added to a base register that points to the memory range of vectored interrupts.
+
 #### Useful Websites:
 https://luplab.gitlab.io/rvcodecjs/
 
 https://msyksphinz-self.github.io/riscv-isadoc/html/rvi.html
 
-https://www.itsembedded.com/dhd/verilator_1/
+https://www.itsembedded.com/dhd/verilator_1/o

@@ -9,7 +9,11 @@ module control_unit (
     output logic       dmu_re,
     output logic       mtreg,
     output logic       alu_src,
-    output logic       flush,
+    output logic       exception,
+    output logic       mret,
+    output logic       if_flush,
+    output logic       id_flush,
+    output logic       ex_flush,
     output logic [1:0] aluop
 );
     
@@ -20,7 +24,11 @@ always_comb begin
     dmu_re     = 0;
     mtreg      = 0;
     alu_src    = 0;
-    flush      = 0;
+    if_flush   = 0;
+    id_flush   = 0;
+    ex_flush   = 0;
+    exception  = 0;
+    mret       = 0;
     aluop = `ALUOP_RTYPE;
 
     case (opcode)
@@ -68,7 +76,11 @@ always_comb begin
             dmu_re     = 0;
             mtreg      = 0;
             alu_src    = 0;
-            flush      = 0;
+            if_flush   = 0;
+            id_flush   = 0;
+            ex_flush   = 0;
+            exception  = 0;
+            mret       = 0;
             aluop = `ALUOP_RTYPE;
         end
     endcase

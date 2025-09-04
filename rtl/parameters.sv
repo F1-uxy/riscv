@@ -31,6 +31,15 @@
 `define OP_JAL     7'b1101111
 `define OP_JALR    7'b1100111
 
+// Branch Prediction
+`define PRED_STRONG_TAKE        2'b11
+`define PRED_TAKE               2'b10
+`define PRED_NOT_TAKE           2'b01
+`define PRED_STRONG_NOT_TAKE    2'b00
+
+// Exception/Interrupts:
+`define EXCEPTION_ADDR 64'h0000_0000_1C09_0000
+
 
 
 

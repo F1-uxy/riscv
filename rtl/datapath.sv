@@ -1,4 +1,5 @@
 `include "library/counter.sv"
+`include "parameters.sv"
 
 module datapath (
     input logic clk,
@@ -91,17 +92,21 @@ module datapath (
         rc_mem_wb control;
     } r_mem;
 
+    typedef struct packed {
+        logic [3:0]  scause;
+        logic [63:0] sepc;
+    } r_exception;
+    
     /*
         --- Instruction Fetch
     */
 
     /*  --- Program Counter --- */
-    logic [63:0] pc_out;
-    logic [63:0] pc_inc;
+    logic [63:0] pc_out, pc_inc, pc_val, pc_imm;
     counter #(.WIDTH(64)) m_pc (
         .clk(clk),
         .reset(reset),
-        .inc(pc_inc),
+        .inc(pc_val),
 
         .out(pc_out)
     );
@@ -143,7 +148,8 @@ module datapath (
     /* --- Control Unit --- */
     logic [6:0] opcode;
 
-    logic c_branch, c_reg_we, c_dmu_we, c_dmu_re, c_mtreg, c_alu_src, c_flush;
+    logic c_branch, c_reg_we, c_dmu_we, c_dmu_re, c_mtreg, c_alu_src, 
+          c_exception, c_mret, c_if_flush, c_id_flush, c_ex_flush;
     logic [1:0] aluop;
     control_unit c_control_unit (
         .opcode(opcode),
@@ -154,7 +160,11 @@ module datapath (
         .dmu_re(c_dmu_re),
         .mtreg(c_mtreg),
         .alu_src(c_alu_src),
-        .flush(c_flush),
+        .exception(c_exception),
+        .mret(c_mret),
+        .if_flush(c_if_flush),
+        .id_flush(c_id_flush),
+        .ex_flush(c_ex_flush),
         .aluop(aluop)
     );
 
@@ -213,6 +223,9 @@ module datapath (
     .forward_id_rs1(forward_id_rs1),
     .forward_id_rs2(forward_id_rs2)
 );
+/* verilator lint_off UNDRIVEN */
+    r_exception reg_exception;
+
 /* verilator lint_off UNUSEDSIGNAL */
     r_ex reg_ex, next_reg_ex;
 
@@ -289,7 +302,15 @@ module datapath (
                     (fwd_b == 2'b10) ? reg_ex.alu_res :
                     64'b0;
         alu_b = reg_id.control.ex.alu_src ? reg_id.imm : alu_b_fwd;
-        pc_inc =  stall ? pc_out : ((reg_ex.control.mem.branch && reg_ex.f_zero) ? reg_ex.pc : (pc_out + 64'd4));
+        //pc_inc =  stall ? pc_out : ((reg_ex.control.mem.branch && reg_ex.f_zero) ? reg_ex.pc : (pc_out + 64'd4));
+        pc_imm = (reg_if.pc + (imm_out << 1));
+        pc_inc = stall ? pc_out : (pc_out + 64'd4);
+
+        if (c_exception) pc_val = `EXCEPTION_ADDR;
+        else if (c_mret) pc_val = reg_exception.sepc;
+        if (reg_ex.control.mem.branch && reg_ex.f_zero) pc_val = pc_imm;
+        else pc_val = pc_inc;
+
         opcode = reg_if.instr[6:0];
     end
 
@@ -301,15 +322,19 @@ module datapath (
             reg_ex  <= '0;
             reg_mem <= '0;
         end else begin
-            if (c_flush || (next_reg_ex.control.mem.branch && next_reg_ex.f_zero)) begin
+            if (c_if_flush) begin
                 reg_if <= '0;
             end else reg_if <= next_reg_if;
 
-            if(next_reg_ex.control.mem.branch && next_reg_ex.f_zero) begin
+            // c_id_flush should be ORd with stall signal from HDU but does not work
+            if(c_id_flush || next_reg_ex.control.mem.branch && next_reg_ex.f_zero) begin
                 reg_id <= '0;
             end else reg_id <= next_reg_id;
-                            
-            reg_ex <= next_reg_ex;
+
+            if(c_ex_flush) begin
+                reg_ex <= '0;
+            end else reg_ex <= next_reg_ex;
+
             reg_mem <= next_reg_mem;
         end
     end

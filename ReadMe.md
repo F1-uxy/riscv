@@ -177,13 +177,28 @@ Not all exceptions are interrupts but all interrupts are exceptions.
 Exception: An unscheduled event that disrupts program execptions
 Interrupt: An exception that comes from outside of the processor
 
+Handler functions are defined by the OS, the hardware must provide the mechanicsms for the software to call these handler functions and calculate effective addresses
+
 ##### Exception Registers:
 <ul>
     <li> Supervisor Exception Cause Register (SCAUSE) - Holds a field that indicates the reason for the exception
-    <li> 
+    <li> Supervisor Expection Program COunter (SEPC) - 64-bit register used to hold the address of the affected instruction
+    <li> Handler Address - The memory location of the code that should run after an exception/interrupt
+    <li> mepc - PC at time of interrupt/exception
+    <li> mcause - Cause of exception
+    <li> mtvec - Address of base handler address
 </ul>
 
-Vectored Interrupts: The address to which control is transferred is determined by the cause of the exception, possibly added to a base register that points to the memory range of vectored interrupts.
+Vectored Interrupts: The address to which control is transferred is determined by the cause of the exception, possibly added to a base register that points to the memory range of vectored interrupts. `BASE + (4 x cause)` - Different interrupt types have different starting addresses - Exceptions still go to `BASE`
+
+RISC-V has a direct mode, where the CPU jumps to that base address (`mtvec.BASE`), and vectored mode.
+
+##### Exceptions in a Pipeline:
+
+
+#### To Do:
+- [ ] Proper RISC-V pipeline exception functionality
+- [ ] Instruction level parallelism
 
 #### Useful Websites:
 https://luplab.gitlab.io/rvcodecjs/

@@ -1,17 +1,17 @@
 // Branch Prediction Unit
 
 module bpu (
-    input logic clk,
+    input logic branch,
     input logic taken,
 
-    output logic prediction
+    output logic [1:0] prediction
 );
 
 logic [1:0] curr_prediction;
 
 initial curr_prediction = `PRED_NOT_TAKE;
 
-always @(posedge(clk)) begin
+always @(posedge(branch)) begin
     case (curr_prediction)
         `PRED_STRONG_TAKE:      curr_prediction <= taken ? curr_prediction :  `PRED_TAKE;
         `PRED_TAKE:             curr_prediction <= taken ? `PRED_STRONG_TAKE : `PRED_NOT_TAKE;

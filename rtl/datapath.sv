@@ -11,7 +11,6 @@ module datapath (
     logic [4:0] rs1;
     logic [4:0] rs2;
     
-
     logic [63:0] reg_data_in;
 
     logic [63:0] alu_b_fwd;
@@ -22,6 +21,8 @@ module datapath (
     logic [63:0] dmu_out;
 
     logic [63:0] imm_out;
+
+    logic branch_taken;
 
     typedef struct packed {
         logic alu_src;
@@ -126,6 +127,7 @@ module datapath (
     */
 
     /*  --- Register File --- */
+    logic out_equal;
     register_file m_regs (
         .clk(clk),
         .read_a(rs1),
@@ -177,6 +179,16 @@ module datapath (
         
         .stall        (stall)
     );
+
+    /*
+    logic c_prediction;
+    bpu c_bpu (
+        .branch(c_branch),
+        .taken(),
+
+        .prediction(c_prediction)
+    );*/
+
 /* verilator lint_off UNUSEDSIGNAL */
     r_id reg_id, next_reg_id;
 
@@ -290,7 +302,8 @@ module datapath (
         next_reg_mem.control.wb.mtreg = reg_ex.control.wb.mtreg;
         next_reg_mem.control.wb.reg_we = reg_ex.control.wb.reg_we;
 
-        
+        out_equal = (a_out == b_out);
+        branch_taken = (out_equal && c_branch);
         rs1 = reg_if.instr[19:15];
         rs2 = reg_if.instr[24:20];
         alu_a = (fwd_a == 2'b00) ? reg_id.data_1 :
@@ -302,13 +315,12 @@ module datapath (
                     (fwd_b == 2'b10) ? reg_ex.alu_res :
                     64'b0;
         alu_b = reg_id.control.ex.alu_src ? reg_id.imm : alu_b_fwd;
-        //pc_inc =  stall ? pc_out : ((reg_ex.control.mem.branch && reg_ex.f_zero) ? reg_ex.pc : (pc_out + 64'd4));
         pc_imm = (reg_if.pc + (imm_out << 1));
         pc_inc = stall ? pc_out : (pc_out + 64'd4);
 
         if (c_exception) pc_val = `EXCEPTION_ADDR;
         else if (c_mret) pc_val = reg_exception.sepc;
-        if (reg_ex.control.mem.branch && reg_ex.f_zero) pc_val = pc_imm;
+        else if (branch_taken) pc_val = pc_imm;
         else pc_val = pc_inc;
 
         opcode = reg_if.instr[6:0];
@@ -322,12 +334,11 @@ module datapath (
             reg_ex  <= '0;
             reg_mem <= '0;
         end else begin
-            if (c_if_flush) begin
+            if (c_if_flush || branch_taken) begin
                 reg_if <= '0;
             end else reg_if <= next_reg_if;
 
-            // c_id_flush should be ORd with stall signal from HDU but does not work
-            if(c_id_flush || next_reg_ex.control.mem.branch && next_reg_ex.f_zero) begin
+            if(c_id_flush || branch_taken || stall) begin
                 reg_id <= '0;
             end else reg_id <= next_reg_id;
 

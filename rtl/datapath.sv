@@ -59,6 +59,7 @@ module datapath (
     typedef struct packed {
         logic [31:0] instr;
         logic [63:0] pc;
+        logic [63:0] base_pc;
     } r_if;
 
     typedef struct packed {
@@ -72,6 +73,7 @@ module datapath (
         logic [63:0] data_2;
         logic [63:0] imm;
         logic [63:0] pc;
+        logic [63:0] base_pc;
         rc_id_ex control;
     } r_id;
 
@@ -118,6 +120,16 @@ module datapath (
         .addr(pc_out),
         .instruction(instr)
     );
+
+    /* --- Branch Prediction Unit --- */
+    logic c_prediction;
+    bpu c_bpu (
+        .branch(c_branch),
+        .taken(),
+
+        .prediction(c_prediction)
+    );
+
     /* verilator lint_off UNUSEDSIGNAL */
     r_if reg_if, next_reg_if;
 
@@ -172,24 +184,15 @@ module datapath (
 
     logic stall;
     hdu c_hdu (
-        .id_mem_rd     (reg_id.control.mem.mem_re),
-        .id_reg_sel    (reg_if.instr[11:7]),
-        .id_rs1        (reg_if.instr[19:15]),
-        .id_rs2        (reg_if.instr[24:20]),
+        .id_mem_rd(reg_id.control.mem.mem_re),
+        .id_reg_sel(reg_if.instr[11:7]),
+        .id_rs1(reg_if.instr[19:15]),
+        .id_rs2(reg_if.instr[24:20]),
         
-        .stall        (stall)
+        .stall(stall)
     );
 
-    /*
-    logic c_prediction;
-    bpu c_bpu (
-        .branch(c_branch),
-        .taken(),
-
-        .prediction(c_prediction)
-    );*/
-
-/* verilator lint_off UNUSEDSIGNAL */
+    /* verilator lint_off UNUSEDSIGNAL */
     r_id reg_id, next_reg_id;
 
     /*
@@ -264,6 +267,7 @@ module datapath (
     always_comb begin
         next_reg_if.instr = instr;
         next_reg_if.pc = pc_out;
+        next_reg_if.pc = pc_out;
 
         next_reg_id.instr = reg_if.instr;
         next_reg_id.rs1                = reg_if.instr[19:15];
@@ -275,6 +279,7 @@ module datapath (
         next_reg_id.data_2             = forward_id_rs2 ? reg_data_in : b_out;
         next_reg_id.imm                = imm_out;
         next_reg_id.pc                 = reg_if.pc;
+        next_reg_id.base_pc                 = reg_if.base_pc;
         next_reg_id.control.ex.aluop   = aluop;
         next_reg_id.control.ex.alu_src = c_alu_src;
         next_reg_id.control.mem.branch = c_branch;

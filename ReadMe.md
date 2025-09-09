@@ -171,6 +171,20 @@ For a pipelined branch we always assume that the branch is not taken. If the bra
 
 For a less wasteful branching mechanism we move the branch adder from the EX stage to the ID stage to reduce the cost of a branch taken. This does add extra forwarding and hazard detection logic as we much check the rest of the pipeline for any results related to the branch instruction.
 
+##### Branch Prediction:
+
+##### Branch Target Buffer:
+The Branch Target Buffer is a cache memory used to track previous branches and predict future branches. 
+
+BTB Entry:
+<ul>
+    <li> Branch Instruction Address (BIA)
+    <li> Branch Target Address (BTA)
+</ul>
+
+When a new static branch is executed, it's instruciton address is stored in the BIA field, and its target address is stored in the BTA field. As the BTB is full associative, the BIA field is used for the associative access of the BTB. 
+The BTB works concurrently with the Instruction Memory. If the branch instruction from the Instruction Memory has been accessed before a hit occurs in the BTB with the respective output being the target address for the next instruction fetch if that particular branch instruction is predicted to be taken.
+
 #### Exceptions:
 Not all exceptions are interrupts but all interrupts are exceptions.
 
@@ -192,8 +206,6 @@ Handler functions are defined by the OS, the hardware must provide the mechanics
 Vectored Interrupts: The address to which control is transferred is determined by the cause of the exception, possibly added to a base register that points to the memory range of vectored interrupts. `BASE + (4 x cause)` - Different interrupt types have different starting addresses - Exceptions still go to `BASE`
 
 RISC-V has a direct mode, where the CPU jumps to that base address (`mtvec.BASE`), and vectored mode.
-
-##### Exceptions in a Pipeline:
 
 
 #### To Do:

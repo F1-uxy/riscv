@@ -1,3 +1,6 @@
+`ifndef PARAMETERS_SV
+`define PARAMETERS_SV
+
 // ALU Operation Codes
 `define ALU_AND      4'b0000
 `define ALU_OR       4'b0001
@@ -40,7 +43,6 @@
 // Exception/Interrupts:
 `define EXCEPTION_ADDR 64'h0000_0000_1C09_0000
 
-
-
+`endif
 
 

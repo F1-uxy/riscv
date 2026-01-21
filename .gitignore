@@ -1,4 +1,9 @@
-obj_dir/
-.vscode/
+.venv
+
+# Cocotb
+sim_build/
+results.xml
+__pycache__/
 *.vcd
-*.fst
+obj_dir/
+.sim_builds/

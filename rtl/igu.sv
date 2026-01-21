@@ -1,5 +1,5 @@
 // Immediate Generation Unit
-`include "parameters.sv"
+`include "rtl/parameters.sv"
 
 /* verilator lint_off UNUSEDSIGNAL */
 module igu (

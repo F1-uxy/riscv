@@ -28,7 +28,7 @@ vluint64_t sim_time = 0;
 template<int N>
 uint64_t get_bits(const VlWide<N>& wide, int hi, int lo) {
     assert(hi >= lo);
-    assert(hi < N * 32);  // make sure we don't go out of range
+    assert(hi < N * 32);
 
     uint64_t result = 0;
     int width = hi - lo + 1;

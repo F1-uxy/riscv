@@ -1,8 +1,7 @@
 #!/bin/bash
 
-set -e  # Exit on error
+set -e
 
-# Top module name passed as first argument
 TOP="$1"
 
 if [ -z "$TOP" ]; then
@@ -20,7 +19,6 @@ OSS_CAD_BIN="$OSS_CAD_DIR/bin"
 if ! command -v verilator &> /dev/null; then
     echo "Verilator not found in PATH. Adding OSS CAD Suite..."
     
-    # Check if the oss-cad-suite exists
     if [ -x "$OSS_CAD_BIN" ]; then
         export PATH="$OSS_CAD_BIN:$PATH"
         echo "Added $OSS_CAD_BIN to PATH"
@@ -45,12 +43,9 @@ fi
 
 echo "Running Verilator on $SRC with testbench $TB..."
 
-# Step 1: Generate simulation files
 verilator --Wall --trace --trace-fst --trace-structs --cc "$SRC" --exe "$TB" -Irtl
 
-# Step 2: Build simulation binary
 make -C "$OBJDIR" -f "V${TOP}.mk" "V${TOP}"
 
-# Step 3: Run the simulation
 echo "Running simulation..."
 "$VEXE"

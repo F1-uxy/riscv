@@ -1,5 +1,5 @@
-`include "library/counter.sv"
-`include "parameters.sv"
+`include "rtl/library/counter.sv"
+`include "rtl/parameters.sv"
 
 module datapath (
     input logic clk,
@@ -122,7 +122,7 @@ module datapath (
     );
 
     /* --- Branch Prediction Unit --- */
-    logic c_prediction;
+    logic [1:0] c_prediction;
     bpu c_bpu (
         .branch(c_branch),
         .taken(),
@@ -267,9 +267,9 @@ module datapath (
     always_comb begin
         next_reg_if.instr = instr;
         next_reg_if.pc = pc_out;
-        next_reg_if.pc = pc_out;
-
-        next_reg_id.instr = reg_if.instr;
+        next_reg_if.base_pc = pc_out;
+        
+        next_reg_id.instr              = reg_if.instr;
         next_reg_id.rs1                = reg_if.instr[19:15];
         next_reg_id.rs2                = reg_if.instr[24:20];
         next_reg_id.reg_sel            = reg_if.instr[11:7];
@@ -279,7 +279,7 @@ module datapath (
         next_reg_id.data_2             = forward_id_rs2 ? reg_data_in : b_out;
         next_reg_id.imm                = imm_out;
         next_reg_id.pc                 = reg_if.pc;
-        next_reg_id.base_pc                 = reg_if.base_pc;
+        next_reg_id.base_pc            = reg_if.base_pc;
         next_reg_id.control.ex.aluop   = aluop;
         next_reg_id.control.ex.alu_src = c_alu_src;
         next_reg_id.control.mem.branch = c_branch;

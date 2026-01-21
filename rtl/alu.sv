@@ -1,4 +1,4 @@
-`include "parameters.sv"
+`include "rtl/parameters.sv"
 
 module alu (
     input logic [3:0] alucontrol,

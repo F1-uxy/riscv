@@ -1,18 +1,42 @@
 # Makefile
 
+UNIT ?= datapath
+VERILOG_SOURCES ?= $(PWD)/rtl/alu.sv $(PWD)/rtl/parameters.sv $(PWD)/rtl/alu_cont.sv $(PWD)/rtl/datapath.sv $(PWD)/rtl/instr_mem.sv $(PWD)/rtl/bpu.sv $(PWD)/rtl/control_unit.sv $(PWD)/rtl/dmu.sv $(PWD)/rtl/ecu.sv $(PWD)/rtl/forwarding_unit.sv $(PWD)/rtl/hdu.sv $(PWD)/rtl/igu.sv $(PWD)/rtl/register_file.sv
+TOPLEVEL ?= datapath
+TEST_MODULES ?= datapathtb
+
 # defaults
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-VERILOG_SOURCES += $(PWD)/rtl/alu.sv $(PWD)/rtl/parameters.sv
+SIM_BUILD = .sim_builds/sim_build_$(UNIT)
+
+ALU_SOURCES = $(PWD)/rtl/alu.sv $(PWD)/rtl/parameters.sv
+ALU_TM = alutb
+
+ALU_CONT_SOURCES = $(PWD)/rtl/alu_cont.sv $(PWD)/rtl/parameters.sv
+ALU_CONT_TM = alu_conttb
+
+ifeq ($(UNIT), alu)
+	VERILOG_SOURCES = $(ALU_SOURCES)
+	TOPLEVEL = $(UNIT)
+	TEST_MODULES = $(ALU_TM)
+endif
+
+ifeq ($(UNIT), alu_cont)
+	VERILOG_SOURCES = $(ALU_CONT_SOURCES)
+	TOPLEVEL = $(UNIT)
+	TEST_MODULES = $(ALU_CONT_TM)
+endif
+
 VERILATOR_ARGS += -I$(PWD)/rtl
 EXTRA_ARGS += --trace --trace-structs
 
 # COCOTB_TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
-COCOTB_TOPLEVEL = alu
+COCOTB_TOPLEVEL = $(TOPLEVEL)
 
 # COCOTB_TEST_MODULES is the basename of the Python test file(s)
-COCOTB_TEST_MODULES = alutb
+COCOTB_TEST_MODULES = $(TEST_MODULES)
 export PYTHONPATH := $(PWD)/rtl/tb:$(PYTHONPATH)
 
 # include cocotb's make rules to take care of the simulator setup

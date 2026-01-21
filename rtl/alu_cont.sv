@@ -1,4 +1,4 @@
-`include "parameters.sv"
+`include "rtl/parameters.sv"
 
 module alu_cont (
     input  logic [6:0] funct7,
@@ -24,7 +24,7 @@ always_comb begin
                 3'b111: alucontrol = `ALU_AND;
                 3'b110: alucontrol = `ALU_OR;
                 //3'b010: alucontrol = `ALU_SLT;
-                3'b001: alucontrol = `ALU_SLL;
+                //3'b001: alucontrol = `ALU_SLL;
                 //3'b101: alucontrol = (funct7 == 7'b0100000) ? `ALU_SRA : `ALU_SRL;
                 default: alucontrol = `ALU_ADD; // default fallback
             endcase

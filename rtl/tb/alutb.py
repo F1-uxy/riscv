@@ -1,61 +1,124 @@
 import cocotb
-from cocotb.triggers import Timer
-from cocotb.clock import Clock
+from cocotb.triggers import Timer, ReadOnly
 
 from parameters import *
 
 ALU_ADD = PARAMS["ALU_OPS"]["ALU_ADD"]
 ALU_AND = PARAMS["ALU_OPS"]["ALU_AND"]
+ALU_SUB = PARAMS["ALU_OPS"]["ALU_SUB"]
+ALU_XOR = PARAMS["ALU_OPS"]["ALU_XOR"]
+ALU_OR  = PARAMS["ALU_OPS"]["ALU_OR"]
 
-async def test_add(alu):
-    await Timer(10, "ns")
+async def check_operation(dut, op, a, b, result, carry=None, zero=None):
+    dut.alucontrol.value = op
+    dut.rs1.value = a
+    dut.rs2.value = b
 
-    alu.alucontrol.value = ALU_ADD
-    alu.rs1.value = 0x0005
-    alu.rs2.value = 0x000A
+    await ReadOnly()
 
-    await Timer(10, "ns")
-
-    assert alu.result.value == 0x000F
-
-    await Timer(10, "ns")
-
-    alu.alucontrol.value = ALU_ADD
-    alu.rs1.value = 0xFFFFFFFFFFFFFFFF
-    alu.rs2.value = 0x0000000000000001
-
-    await Timer(10, "ns")
-
-    assert alu.result.value == 0x0
-    assert alu.c_carry.value == 1
-    assert alu.c_zero.value == 1
-
-
-
-async def test_and(alu):
-    await Timer(10, "ns")
-
-    alu.alucontrol.value = ALU_AND
-    alu.rs1.value = 0xAAAA
-    alu.rs2.value = 0x5555
-
-    await Timer(10, "ns")
-
-    assert alu.result.value == 0x0000
-    assert alu.c_zero.value == 1
-
-    alu.rs1.value = 0xAAAA
-    alu.rs2.value = 0xAAAA
+    assert dut.result.value == result
+    if carry is not None:
+        assert dut.c_carry.value == carry
+    if zero is not None:
+        assert dut.c_zero.value == zero
     
-    await Timer(10, "ns")
+    await Timer(10, "ps")
 
-    assert alu.result.value == 0xAAAA
-    assert alu.c_zero.value == 0
 
 @cocotb.test()
-async def test_alu(alu):
-    
-    await test_and(alu)
-    await test_add(alu)
+async def test_add(alu):
+    await check_operation(
+        alu, 
+        ALU_ADD, 
+        0x5, 
+        0xA, 
+        0xF
+    )
 
-    await Timer(10, "ns")
+    await check_operation(
+        alu,
+        ALU_ADD,
+        0xFFFFFFFFFFFFFFFF, 
+        0x1,
+        0x0, 
+        carry=1, 
+        zero=1
+    )
+
+
+@cocotb.test()
+async def test_and(alu):
+    await check_operation(
+        alu, 
+        ALU_AND, 
+        0xAAAA, 
+        0x5555, 
+        0x0000,
+        zero=1
+    )
+
+    await check_operation(
+        alu,
+        ALU_AND,
+        0xAAAA, 
+        0xAAAA,
+        0xAAAA, 
+        zero=0
+    )
+
+@cocotb.test()
+async def test_sub(alu):
+    await check_operation(
+        alu, 
+        ALU_SUB, 
+        0x000A, 
+        0x0005, 
+        0x0005,
+    )
+
+    await check_operation(
+        alu,
+        ALU_SUB,
+        0x0005, 
+        0x000A,
+        0xFFFFFFFFFFFFFFFB, 
+    )
+
+
+@cocotb.test()
+async def test_xor(alu):
+    await check_operation(
+        alu, 
+        ALU_XOR, 
+        0x000A, 
+        0x00A0, 
+        0x00AA,
+    )
+
+    await check_operation(
+        alu,
+        ALU_XOR,
+        0x1010, 
+        0x1010,
+        0x0000,
+        zero=1 
+    )
+
+
+@cocotb.test()
+async def test_or(alu):
+    await check_operation(
+        alu, 
+        ALU_OR, 
+        0x1010, 
+        0x1010, 
+        0x1010,
+    )
+
+    await check_operation(
+        alu,
+        ALU_OR,
+        0x000A, 
+        0x00A0,
+        0x00AA,
+    )

@@ -4,8 +4,42 @@ from cocotb.triggers import Timer, ReadOnly, RisingEdge, ReadWrite, NextTimeStep
 
 from parameters import *
 
+
 async def start_clock(dut):
     cocotb.start_soon(Clock(dut.clk, 10, units="ps").start())
+
+async def run_clock(dut, cycles=50):
+    await start_clock(dut)
+    dut.reset.value = 1
+    await NextTimeStep(dut.clk) 
+    dut.reset.value = 0
+
+    for _ in range(0,cycles):
+        await NextTimeStep(dut.clk) 
+
+def get_signed(val, width=64):
+    v = int(val)
+    if v & (1 << (width - 1)):
+        v -= (1 << width)
+    return v
+
+def assertRegister(dut, i, x):
+    print(f"REG {i}: {dut.m_regs.regs.value[i]}")
+    assert dut.m_regs.regs.value[i] == x
+
+def check_register(dut, expected):
+    for reg, val in expected.items():
+        raw = (dut.m_regs.regs.value[reg])
+        actual = get_signed(raw)
+        print(f"REG {reg}: {actual} ; expected: {val}")
+        assert actual == val, f"Register {reg} mismatch: expected {val} ; actual {actual}"
+
+@cocotb.test()
+async def test_non_conflict(dut):
+    from rom_results import non_conflict
+
+    await run_clock(dut)
+    check_register(dut, non_conflict)
 
 @cocotb.test()
 async def test_datapath(dut):
@@ -23,6 +57,3 @@ async def test_datapath(dut):
 
     for i in range(0,12):
         print(f"REG {i}: {dut.m_regs.regs.value[i]}")
-
-
-    assert True == True

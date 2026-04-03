@@ -1,3 +1,4 @@
+00000000
 00a00093    // addi x1, x0, 10     ; x1 = 10
 00300113    // addi x2, x0, 3      ; x2 = 3
 002081b3    // add  x3, x1, x2     ; x3 = x1 + x2 = 13
@@ -8,7 +9,7 @@
 0010e413    // ori  x8, x1, 1      ; x8 = x1 | 1 = 11
 00102023    // sw   x1, 0(x0)      ; memory[0] = x1 = 10
 00002483    // lw   x9, 0(x0)      ; x9 = memory[0] = 10
-0010c263    // beq  x1, x1, +8     ; taken → skip next
+00108463    // beq  x1, x1, +8     ; taken → skip next
 06300513    // addi x10, x0, 99    ; SKIPPED (x10 = 0)
 00208263    // beq  x1, x2, +8     ; not taken → fall through
 07b00593    // addi x11, x0, 123   ; x11 = 123

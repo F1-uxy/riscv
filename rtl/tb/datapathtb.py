@@ -15,7 +15,7 @@ async def run_clock(dut, cycles=50):
     dut.reset.value = 0
 
     for _ in range(0,cycles):
-        await NextTimeStep(dut.clk) 
+        await NextTimeStep(dut.clk)
 
 def get_signed(val, width=64):
     v = int(val)
@@ -33,27 +33,45 @@ def check_register(dut, expected):
         actual = get_signed(raw)
         print(f"REG {reg}: {actual} ; expected: {val}")
         assert actual == val, f"Register {reg} mismatch: expected {val} ; actual {actual}"
-
+"""
 @cocotb.test()
 async def test_non_conflict(dut):
     from rom_results import non_conflict
 
     await run_clock(dut)
     check_register(dut, non_conflict)
+"""
+"""
+@cocotb.test()
+async def test_conflict(dut):
+    from rom_results import conflict
+    await run_clock(dut)
+    check_register(dut, conflict)
 
 @cocotb.test()
 async def test_datapath(dut):
+    from rom_results import testbench
+
     await start_clock(dut)
     dut.reset.value = 1
     await NextTimeStep(dut.clk) 
     dut.reset.value = 0
 
-    for i in range(0,15):
+    for i in range(0,50):
         await NextTimeStep(dut.clk) 
     
     for i in range(0,16):
         print(f"MEM {i}: {dut.m_imem.mem.value[i]}")
         
-
     for i in range(0,12):
         print(f"REG {i}: {dut.m_regs.regs.value[i]}")
+
+    check_register(dut, testbench)
+"""
+
+@cocotb.test()
+async def test_bpu(dut):
+    from rom_results import bpu
+
+    await run_clock(dut, cycles=200)
+    check_register(dut, bpu)

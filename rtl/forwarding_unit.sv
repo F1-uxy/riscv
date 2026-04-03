@@ -29,8 +29,11 @@ always_comb begin
         forward_b = 2'b01;
     end else forward_b = 2'b00;
 
-    forward_id_rs1 = (mem_reg_wr && (mem_reg_rd != 0) && (mem_reg_rd == id_rs1));
-    forward_id_rs2 = (mem_reg_wr && (mem_reg_rd != 0) && (mem_reg_rd == id_rs2));
+    forward_id_rs1 = (ex_reg_wr && (ex_reg_rd != 0) && (ex_reg_rd == id_rs1)) ||
+                 (mem_reg_wr && (mem_reg_rd != 0) && (mem_reg_rd == id_rs1));
+
+    forward_id_rs2 = (ex_reg_wr && (ex_reg_rd != 0) && (ex_reg_rd == id_rs2)) ||
+                    (mem_reg_wr && (mem_reg_rd != 0) && (mem_reg_rd == id_rs2));
 
 end
 

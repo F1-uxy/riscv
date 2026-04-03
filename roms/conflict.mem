@@ -1,0 +1,14 @@
+00000000
+00500093    // addi x1, x0, 5        ; x1 = 5
+00308113    // addi x2, x1, 3        ; x2 = 8 (RAW hazard)
+00210193    // addi x3, x2, 2        ; x3 = 10 (chained RAW)
+00102023    // sw   x1, 0(x0)        ; mem[0] = 5
+00002203    // lw   x4, 0(x0)        ; x4 = 5
+001202b3    // add  x5, x4, x1       ; x5 = 10 (needs stall or forward)
+40118333    // sub  x6, x3, x1       ; x6 = 5
+00130463    // beq  x6, x1, +8       ; taken (5 == 5)
+06300393    // addi x7, x0, 99       ; SHOULD BE SKIPPED
+00002283    // lw   x5, 0(x0)        ; x5 = 5
+00128463    // beq  x5, x1, +8       ; taken (5 == 5)
+02a00413    // addi x8, x0, 42       ; SHOULD BE SKIPPED
+07b00493    // addi x9, x0, 123      ; x9 = 123

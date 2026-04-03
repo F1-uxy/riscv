@@ -15,6 +15,9 @@ module datapath (
 
     logic [63:0] alu_b_fwd;
 
+    logic [63:0] branch_rs1;
+    logic [63:0] branch_rs2;
+
     logic [63:0] b_out;
     logic [63:0] a_out;
 
@@ -23,6 +26,7 @@ module datapath (
     logic [63:0] imm_out;
 
     logic branch_taken;
+    logic mispredict;
 
     typedef struct packed {
         logic alu_src;
@@ -60,6 +64,7 @@ module datapath (
         logic [31:0] instr;
         logic [63:0] pc;
         logic [63:0] base_pc;
+        logic        predicted_branch;
     } r_if;
 
     typedef struct packed {
@@ -74,6 +79,7 @@ module datapath (
         logic [63:0] imm;
         logic [63:0] pc;
         logic [63:0] base_pc;
+        logic        predicted_branch;
         rc_id_ex control;
     } r_id;
 
@@ -122,10 +128,15 @@ module datapath (
     );
 
     /* --- Branch Prediction Unit --- */
-    logic [1:0] c_prediction;
+    logic c_prediction;
+    
     bpu c_bpu (
-        .branch(c_branch),
-        .taken(),
+        .clk(clk),
+        .reset(reset),
+        .pc_fetch(pc_out),
+        .update_en(reg_id.control.mem.branch),
+        .pc_update(reg_id.base_pc),
+        .taken(branch_taken),
 
         .prediction(c_prediction)
     );
@@ -185,6 +196,8 @@ module datapath (
     logic stall;
     hdu c_hdu (
         .id_mem_rd(reg_id.control.mem.mem_re),
+        .ex_mem_rd(reg_ex.control.mem.mem_re),
+        .ex_reg_sel(reg_ex.reg_sel),
         .id_reg_sel(reg_if.instr[11:7]),
         .id_rs1(reg_if.instr[19:15]),
         .id_rs2(reg_if.instr[24:20]),
@@ -261,13 +274,13 @@ module datapath (
 /* verilator lint_off UNUSEDSIGNAL */
     r_mem reg_mem, next_reg_mem;
 
-    
 
     // Combinationally prepare next stage for registers
     always_comb begin
         next_reg_if.instr = instr;
-        next_reg_if.pc = pc_out;
+        next_reg_if.pc = pc_out + 64'd4;
         next_reg_if.base_pc = pc_out;
+        next_reg_if.predicted_branch = c_prediction;
         
         next_reg_id.instr              = reg_if.instr;
         next_reg_id.rs1                = reg_if.instr[19:15];
@@ -275,8 +288,24 @@ module datapath (
         next_reg_id.reg_sel            = reg_if.instr[11:7];
         next_reg_id.funct7             = reg_if.instr[31:25];
         next_reg_id.funct3             = reg_if.instr[14:12];
-        next_reg_id.data_1             = forward_id_rs1 ? reg_data_in : a_out;
-        next_reg_id.data_2             = forward_id_rs2 ? reg_data_in : b_out;
+        next_reg_id.predicted_branch   = reg_if.predicted_branch;
+        
+        // RS1
+        if (reg_ex.control.wb.reg_we && (reg_ex.reg_sel != 0) && (reg_ex.reg_sel == reg_if.instr[19:15]))
+            next_reg_id.data_1 = reg_ex.alu_res;
+        else if (reg_mem.control.wb.reg_we && (reg_mem.reg_sel != 0) && (reg_mem.reg_sel == reg_if.instr[19:15]))
+            next_reg_id.data_1 = reg_data_in;
+        else
+            next_reg_id.data_1 = a_out;
+
+        // RS2
+        if (reg_ex.control.wb.reg_we && (reg_ex.reg_sel != 0) && (reg_ex.reg_sel == reg_if.instr[24:20]))
+            next_reg_id.data_2 = reg_ex.alu_res;
+        else if (reg_mem.control.wb.reg_we && (reg_mem.reg_sel != 0) && (reg_mem.reg_sel == reg_if.instr[24:20]))
+            next_reg_id.data_2 = reg_data_in;
+        else
+            next_reg_id.data_2 = b_out;
+
         next_reg_id.imm                = imm_out;
         next_reg_id.pc                 = reg_if.pc;
         next_reg_id.base_pc            = reg_if.base_pc;
@@ -290,7 +319,7 @@ module datapath (
 
         next_reg_ex.instr = reg_id.instr;
         next_reg_ex.reg_sel = reg_id.reg_sel;
-        next_reg_ex.pc = (reg_id.pc + (reg_id.imm << 1));
+        next_reg_ex.pc = reg_id.base_pc;
         next_reg_ex.alu_res = alu_out;
         next_reg_ex.data_2 = reg_id.data_2;
         next_reg_ex.f_zero = f_zero;
@@ -307,8 +336,17 @@ module datapath (
         next_reg_mem.control.wb.mtreg = reg_ex.control.wb.mtreg;
         next_reg_mem.control.wb.reg_we = reg_ex.control.wb.reg_we;
 
-        out_equal = (a_out == b_out);
-        branch_taken = (out_equal && c_branch);
+        branch_rs1 = (fwd_a == 2'b10 && !reg_ex.control.mem.mem_re) ? reg_ex.alu_res :
+                    (fwd_a == 2'b01) ? reg_data_in    :
+                    reg_id.data_1;
+
+        branch_rs2 = (fwd_b == 2'b10 && !reg_ex.control.mem.mem_re) ? reg_ex.alu_res :
+                    (fwd_b == 2'b01) ? reg_data_in    :
+                    reg_id.data_2;
+
+        out_equal = (branch_rs1 == branch_rs2);
+        branch_taken = (out_equal && reg_id.control.mem.branch);
+
         rs1 = reg_if.instr[19:15];
         rs2 = reg_if.instr[24:20];
         alu_a = (fwd_a == 2'b00) ? reg_id.data_1 :
@@ -320,12 +358,17 @@ module datapath (
                     (fwd_b == 2'b10) ? reg_ex.alu_res :
                     64'b0;
         alu_b = reg_id.control.ex.alu_src ? reg_id.imm : alu_b_fwd;
-        pc_imm = (reg_if.pc + (imm_out << 1));
+        pc_imm = (reg_if.base_pc + (imm_out));
         pc_inc = stall ? pc_out : (pc_out + 64'd4);
+
+        mispredict = reg_id.control.mem.branch && (branch_taken != reg_id.predicted_branch);
 
         if (c_exception) pc_val = `EXCEPTION_ADDR;
         else if (c_mret) pc_val = reg_exception.sepc;
-        else if (branch_taken) pc_val = pc_imm;
+        else if (mispredict) pc_val = branch_taken ? 
+                                        (reg_id.base_pc + (reg_id.imm)) :
+                                        (reg_id.base_pc + 64'd4);
+        else if (reg_if.predicted_branch) pc_val = pc_imm;
         else pc_val = pc_inc;
 
         opcode = reg_if.instr[6:0];
@@ -339,11 +382,11 @@ module datapath (
             reg_ex  <= '0;
             reg_mem <= '0;
         end else begin
-            if (c_if_flush || branch_taken) begin
+            if (c_if_flush || mispredict) begin
                 reg_if <= '0;
             end else reg_if <= next_reg_if;
 
-            if(c_id_flush || branch_taken || stall) begin
+            if(c_id_flush || mispredict || stall) begin
                 reg_id <= '0;
             end else reg_id <= next_reg_id;
 

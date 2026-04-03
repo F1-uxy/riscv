@@ -17,6 +17,9 @@ ALU_TM = alutb
 ALU_CONT_SOURCES = $(PWD)/rtl/alu_cont.sv $(PWD)/rtl/parameters.sv
 ALU_CONT_TM = alu_conttb
 
+BPU_SOURCES = $(PWD)/rtl/bpu.sv $(PWD)/rtl/parameters.sv
+BPU_TM = bputb
+
 ifeq ($(UNIT), alu)
 	VERILOG_SOURCES = $(ALU_SOURCES)
 	TOPLEVEL = $(UNIT)
@@ -29,13 +32,17 @@ ifeq ($(UNIT), alu_cont)
 	TEST_MODULES = $(ALU_CONT_TM)
 endif
 
+ifeq ($(UNIT), bpu)
+	VERILOG_SOURCES = $(BPU_SOURCES)
+	TOPLEVEL = $(UNIT)
+	TEST_MODULES = $(BPU_TM)
+endif
+
 VERILATOR_ARGS += -I$(PWD)/rtl
 EXTRA_ARGS += --trace --trace-structs
 
-# COCOTB_TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
 COCOTB_TOPLEVEL = $(TOPLEVEL)
 
-# COCOTB_TEST_MODULES is the basename of the Python test file(s)
 COCOTB_TEST_MODULES = $(TEST_MODULES)
 export PYTHONPATH := $(PWD)/rtl/tb:$(PYTHONPATH)
 

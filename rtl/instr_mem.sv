@@ -13,8 +13,10 @@ logic [31:0] mem [0:65535];
 
 initial begin
     $display("Loading rom.");
+    $readmemh("roms/bpu.mem", mem);
     //$readmemh("roms/testbench.mem", mem);
-    $readmemh("roms/non-conflict.mem", mem);
+    //$readmemh("roms/conflict.mem", mem);
+    //$readmemh("roms/non-conflict.mem", mem);
     //mem[0] = 32'h00a00093;
     //mem[1] = 32'h00300113;
 end
@@ -32,3 +34,4 @@ end
 */
 
 endmodule
+    

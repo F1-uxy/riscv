@@ -1,6 +1,9 @@
 .venv
 .vscode/
 
+# Quartus
+quartus/
+
 # Cocotb
 sim_build/
 results.xml

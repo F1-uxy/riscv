@@ -1,7 +1,7 @@
 # Makefile
 
 UNIT ?= datapath
-VERILOG_SOURCES ?= $(PWD)/rtl/alu.sv $(PWD)/rtl/parameters.sv $(PWD)/rtl/alu_cont.sv $(PWD)/rtl/datapath.sv $(PWD)/rtl/instr_mem.sv $(PWD)/rtl/bpu.sv $(PWD)/rtl/control_unit.sv $(PWD)/rtl/dmu.sv $(PWD)/rtl/ecu.sv $(PWD)/rtl/forwarding_unit.sv $(PWD)/rtl/hdu.sv $(PWD)/rtl/igu.sv $(PWD)/rtl/register_file.sv
+VERILOG_SOURCES ?= $(PWD)/rtl/alu.sv $(PWD)/rtl/parameters.sv $(PWD)/rtl/alu_cont.sv $(PWD)/rtl/datapath.sv $(PWD)/rtl/instr_mem.sv $(PWD)/rtl/bpu.sv $(PWD)/rtl/bcu.sv $(PWD)/rtl/control_unit.sv $(PWD)/rtl/dmu.sv $(PWD)/rtl/ecu.sv $(PWD)/rtl/forwarding_unit.sv $(PWD)/rtl/hdu.sv $(PWD)/rtl/igu.sv $(PWD)/rtl/register_file.sv
 TOPLEVEL ?= datapath
 TEST_MODULES ?= datapathtb
 

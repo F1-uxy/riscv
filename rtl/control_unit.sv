@@ -14,6 +14,10 @@ module control_unit (
     output logic       if_flush,
     output logic       id_flush,
     output logic       ex_flush,
+    output logic       jal,
+    output logic       jalr,
+    output logic       pcsrc,
+    // output logic       lui_src,
     output logic [1:0] aluop
 );
     
@@ -29,6 +33,9 @@ always_comb begin
     ex_flush   = 0;
     exception  = 0;
     mret       = 0;
+    jal        = 0;
+    jalr       = 0;
+    pcsrc      = 0;
     aluop = `ALUOP_RTYPE;
 
     case (opcode)
@@ -67,6 +74,18 @@ always_comb begin
         `OP_AUIPC: begin
             reg_we = 1;
             alu_src = 1;
+            aluop = `ALUOP_LWSW;
+        end
+        `OP_JAL: begin
+            reg_we = 1;
+            jal = 1;
+            pcsrc = 1;
+        end
+        `OP_JALR: begin
+            reg_we = 1;
+            alu_src = 1;
+            jalr = 1;
+            pcsrc = 1;
             aluop = `ALUOP_LWSW;
         end
         default: begin

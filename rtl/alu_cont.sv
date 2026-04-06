@@ -20,13 +20,15 @@ always_comb begin
 
         `ALUOP_RTYPE: begin
             case (funct3)
-                3'b000: alucontrol = (funct7 == 7'b0100000) ? `ALU_SUB : `ALU_ADD; // add/sub/addi
-                3'b111: alucontrol = `ALU_AND;
+                3'b000: alucontrol = (funct7 == 7'b0100000) ? `ALU_SUB : `ALU_ADD;
+                3'b001: alucontrol = `ALU_SLL;
+                3'b010: alucontrol = `ALU_SLT;
+                3'b011: alucontrol = `ALU_SLTU;
+                3'b100: alucontrol = `ALU_XOR;
+                3'b101: alucontrol = (funct7 == 7'b0100000) ? `ALU_SRA : `ALU_SRL;
                 3'b110: alucontrol = `ALU_OR;
-                //3'b010: alucontrol = `ALU_SLT;
-                //3'b001: alucontrol = `ALU_SLL;
-                //3'b101: alucontrol = (funct7 == 7'b0100000) ? `ALU_SRA : `ALU_SRL;
-                default: alucontrol = `ALU_ADD; // default fallback
+                3'b111: alucontrol = `ALU_AND;
+                default: alucontrol = `ALU_ADD;
             endcase
         end
 

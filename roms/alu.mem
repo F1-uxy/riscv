@@ -1,0 +1,9 @@
+00000000
+FFB00093    // addi x1, x0, -5           ; x1 = 0xFFFFFFFB (-5)
+00300113    // addi x2, x0, 3            ; x2 = 0x00000003 (3)
+0020C1B3    // xor  x3, x1, x2           ; x3 = 0xFFFFFFF8 (-8)
+0020A233    // slt  x4, x1, x2           ; x4 = 0x00000001 (1)   -5 < 3 signed
+0020B2B3    // sltu x5, x1, x2           ; x5 = 0x00000000 (0)   0xFFFFFFFB > 3 unsigned
+00211333    // sll  x6, x2, x2           ; x6 = 0x00000018 (24)  3 << 3
+0020D3B3    // srl  x7, x1, x2           ; x7 = 0x1FFFFFFF (536870911)  logical, no sign ext
+4020D433    // sra  x8, x1, x2           ; x8 = 0xFFFFFFFF (-1)  arithmetic, sign extended

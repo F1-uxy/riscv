@@ -12,6 +12,11 @@ ALU_AND = PARAMS["ALU_OPS"]["ALU_AND"]
 ALU_SUB = PARAMS["ALU_OPS"]["ALU_SUB"]
 ALU_XOR = PARAMS["ALU_OPS"]["ALU_XOR"]
 ALU_OR  = PARAMS["ALU_OPS"]["ALU_OR"]
+ALU_SLT = PARAMS["ALU_OPS"]["ALU_SLT"]
+ALU_SLTU = PARAMS["ALU_OPS"]["ALU_SLTU"]
+ALU_SLL = PARAMS["ALU_OPS"]["ALU_SLL"]
+ALU_SRL = PARAMS["ALU_OPS"]["ALU_SRL"]
+ALU_SRA = PARAMS["ALU_OPS"]["ALU_SRA"]
 
 async def request_type(dut, op, funct7, funct3, alucontrol, name=""):
     dut.aluop.value = op
@@ -66,6 +71,60 @@ async def test_rtype(alu_cont):
         0b110,
         ALU_OR,
         name="R-type OR"
+    )
+
+    await request_type(
+        alu_cont,
+        ALUOP_RTYPE,
+        0b0,
+        0b100,
+        ALU_XOR,
+        name="R-type XOR"
+    )
+    
+    await request_type(
+        alu_cont,
+        ALUOP_RTYPE,
+        0b0,
+        0b001,
+        ALU_SLL,
+        name="R-type SLL"
+    )
+
+    await request_type(
+        alu_cont,
+        ALUOP_RTYPE,
+        0b0,
+        0b010,
+        ALU_SLT,
+        name="R-type SLT"
+    )
+
+    await request_type(
+        alu_cont,
+        ALUOP_RTYPE,
+        0b0,
+        0b011,
+        ALU_SLTU,
+        name="R-type SLTU"
+    )
+
+    await request_type(
+        alu_cont,
+        ALUOP_RTYPE,
+        0b0100000,
+        0b101,
+        ALU_SRA,
+        name="R-type SRA"
+    )
+
+    await request_type(
+        alu_cont,
+        ALUOP_RTYPE,
+        0b0,
+        0b101,
+        ALU_SRL,
+        name="R-type SRL"
     )
 
 

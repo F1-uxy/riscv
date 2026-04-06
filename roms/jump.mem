@@ -1,0 +1,10 @@
+00000000
+00500093    // addi x1, x0, 5      ; x1 = 5
+0080016F    // jal x2, +8          ; x2 = 0x0C (return addr), jump to 0x10
+06300193    // addi x3, x0, 99     ; SKIPPED — x3 = 0
+02A00213    // addi x4, x0, 42     ; x4 = 42  (JAL lands here)
+02400313    // addi x6, x0, 0x24   ; x6 = 0x24 (JALR target address)
+000302E7    // jalr x5, x6, 0      ; x5 = 0x1C (return addr), jump to 0x24
+06300393    // addi x7, x0, 99     ; SKIPPED — x7 = 0
+06300393    // addi x7, x0, 99     ; SKIPPED — x7 = 0
+04D00413    // addi x8, x0, 77     ; x8 = 77  (JALR lands here)

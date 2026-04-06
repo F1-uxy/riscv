@@ -15,9 +15,6 @@ logic [63:0] sum;
 logic [63:0] rs2_in;
 logic sub;
 
-//logic signed [63:0] s_rs1 = rs1;
-//logic signed [63:0] s_rs2 = rs2;
-
 assign sub = (alucontrol == `ALU_SUB);
 assign rs2_in = sub ? ~rs2 : rs2;
 
@@ -33,6 +30,11 @@ always_comb begin
         `ALU_AND: result = rs1 & rs2;
         `ALU_OR:  result = rs1 | rs2;
         `ALU_XOR:  result = rs1 ^ rs2;
+        `ALU_SLL: result = rs1 << rs2[5:0];
+        `ALU_SRL: result = rs1 >> rs2[5:0];
+        `ALU_SRA: result = $signed(rs1) >>> rs2[5:0];
+        `ALU_SLT: result = ($signed(rs1) < $signed(rs2)) ? 64'd1 : 64'd0;
+        `ALU_SLTU: result = (rs1 < rs2);
         default: result = 64'd0;
     endcase
 end

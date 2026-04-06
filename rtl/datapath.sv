@@ -1,5 +1,5 @@
-`include "rtl/library/counter.sv"
 `include "rtl/parameters.sv"
+`include "rtl/library/counter.sv"
 
 module datapath (
     input logic clk,
@@ -17,6 +17,7 @@ module datapath (
 
     logic [63:0] branch_rs1;
     logic [63:0] branch_rs2;
+    logic [63:0] jalr_rs1;
 
     logic [63:0] b_out;
     logic [63:0] a_out;
@@ -25,11 +26,13 @@ module datapath (
 
     logic [63:0] imm_out;
 
-    logic branch_taken;
     logic mispredict;
-
+    logic jump;
+    
     typedef struct packed {
         logic alu_src;
+        logic jal;
+        logic jalr;
         logic [1:0] aluop;
     } rcs_ex;
 
@@ -42,6 +45,8 @@ module datapath (
     typedef struct packed {
         logic mtreg;
         logic reg_we;
+        logic mem_we;
+        logic pcsrc;
     } rcs_wb;
 
     typedef struct packed {
@@ -85,6 +90,7 @@ module datapath (
 
     typedef struct packed {
         logic [31:0] instr;
+        logic [2:0] funct3;
         logic [4:0] reg_sel;
         logic [63:0] pc;
         logic [63:0] alu_res;
@@ -98,6 +104,8 @@ module datapath (
         logic [4:0] reg_sel;
         logic [63:0] alu_res;
         logic [63:0] data_rd;
+        logic [63:0] data_2;
+        logic [63:0] pc;
         rc_mem_wb control;
     } r_mem;
 
@@ -105,6 +113,15 @@ module datapath (
         logic [3:0]  scause;
         logic [63:0] sepc;
     } r_exception;
+
+    /* verilator lint_off UNUSEDSIGNAL */
+    r_if reg_if, next_reg_if;
+    /* verilator lint_off UNUSEDSIGNAL */
+    r_id reg_id, next_reg_id;
+    /* verilator lint_off UNUSEDSIGNAL */
+    r_ex reg_ex, next_reg_ex;
+    /* verilator lint_off UNUSEDSIGNAL */
+    r_mem reg_mem, next_reg_mem;
     
     /*
         --- Instruction Fetch
@@ -127,6 +144,16 @@ module datapath (
         .instruction(instr)
     );
 
+    /* --- Branch Control Unit --- */
+    logic c_branch_taken;
+    bcu c_bcu (
+        .branch_rs1(branch_rs1),
+        .branch_rs2(branch_rs2),
+        .funct3(reg_id.funct3),
+
+        .branch_taken(c_branch_taken)
+    );
+
     /* --- Branch Prediction Unit --- */
     logic c_prediction;
     
@@ -136,13 +163,12 @@ module datapath (
         .pc_fetch(pc_out),
         .update_en(reg_id.control.mem.branch),
         .pc_update(reg_id.base_pc),
-        .taken(branch_taken),
+        .taken(c_branch_taken),
 
         .prediction(c_prediction)
     );
 
-    /* verilator lint_off UNUSEDSIGNAL */
-    r_if reg_if, next_reg_if;
+    
 
 
     /*
@@ -174,7 +200,8 @@ module datapath (
     logic [6:0] opcode;
 
     logic c_branch, c_reg_we, c_dmu_we, c_dmu_re, c_mtreg, c_alu_src, 
-          c_exception, c_mret, c_if_flush, c_id_flush, c_ex_flush;
+          c_exception, c_mret, c_if_flush, c_id_flush, c_ex_flush, c_jal,
+          c_jalr, c_pcsrc;
     logic [1:0] aluop;
     control_unit c_control_unit (
         .opcode(opcode),
@@ -190,6 +217,9 @@ module datapath (
         .if_flush(c_if_flush),
         .id_flush(c_id_flush),
         .ex_flush(c_ex_flush),
+        .jal(c_jal),
+        .jalr(c_jalr),
+        .pcsrc(c_pcsrc),
         .aluop(aluop)
     );
 
@@ -205,8 +235,6 @@ module datapath (
         .stall(stall)
     );
 
-    /* verilator lint_off UNUSEDSIGNAL */
-    r_id reg_id, next_reg_id;
 
     /*
         --- Execute / Address Calculation ---
@@ -254,9 +282,6 @@ module datapath (
 /* verilator lint_off UNDRIVEN */
     r_exception reg_exception;
 
-/* verilator lint_off UNUSEDSIGNAL */
-    r_ex reg_ex, next_reg_ex;
-
     /*
         --- Memory Access ---
     */
@@ -266,13 +291,16 @@ module datapath (
         .clk(clk),
         .write_en(reg_ex.control.mem.mem_we),
         .read_en(reg_ex.control.mem.mem_re),
+        .funct3(reg_ex.funct3),
         .addr(reg_ex.alu_res[15:0]),
         .data_in(reg_ex.data_2),
+        .fwd_store_addr(reg_mem.alu_res[15:0]),
+        .fwd_store_data(reg_mem.data_2),
+        .fwd_store_en(reg_mem.control.wb.mem_we),
         
         .data_out(dmu_out)
     );
-/* verilator lint_off UNUSEDSIGNAL */
-    r_mem reg_mem, next_reg_mem;
+
 
 
     // Combinationally prepare next stage for registers
@@ -311,30 +339,44 @@ module datapath (
         next_reg_id.base_pc            = reg_if.base_pc;
         next_reg_id.control.ex.aluop   = aluop;
         next_reg_id.control.ex.alu_src = c_alu_src;
+        next_reg_id.control.ex.jal     = c_jal;
+        next_reg_id.control.ex.jalr     = c_jalr;
         next_reg_id.control.mem.branch = c_branch;
         next_reg_id.control.mem.mem_we = c_dmu_we;
         next_reg_id.control.mem.mem_re = c_dmu_re;
         next_reg_id.control.wb.mtreg   = c_mtreg;
         next_reg_id.control.wb.reg_we  = c_reg_we;
+        next_reg_id.control.wb.pcsrc  = c_pcsrc;
 
         next_reg_ex.instr = reg_id.instr;
+        next_reg_ex.funct3 = reg_id.funct3;
         next_reg_ex.reg_sel = reg_id.reg_sel;
-        next_reg_ex.pc = reg_id.base_pc;
+        next_reg_ex.pc = reg_id.pc;
         next_reg_ex.alu_res = alu_out;
-        next_reg_ex.data_2 = reg_id.data_2;
+        if (fwd_b == 2'b10 && !reg_ex.control.mem.mem_re)
+            next_reg_ex.data_2 = reg_ex.alu_res;
+        else if (fwd_b == 2'b01)
+            next_reg_ex.data_2 = reg_data_in;
+        else
+            next_reg_ex.data_2 = reg_id.data_2;
         next_reg_ex.f_zero = f_zero;
         next_reg_ex.control.mem.branch = reg_id.control.mem.branch;
         next_reg_ex.control.mem.mem_we = reg_id.control.mem.mem_we;
         next_reg_ex.control.mem.mem_re = reg_id.control.mem.mem_re;
         next_reg_ex.control.wb.mtreg   = reg_id.control.wb.mtreg;
         next_reg_ex.control.wb.reg_we  = reg_id.control.wb.reg_we;
+        next_reg_ex.control.wb.pcsrc  = reg_id.control.wb.pcsrc;
 
         next_reg_mem.instr = reg_ex.instr;
         next_reg_mem.reg_sel = reg_ex.reg_sel;
         next_reg_mem.alu_res = reg_ex.alu_res;
         next_reg_mem.data_rd = dmu_out;
+        next_reg_mem.data_2 = reg_ex.data_2;
+        next_reg_mem.pc = reg_ex.pc;
         next_reg_mem.control.wb.mtreg = reg_ex.control.wb.mtreg;
         next_reg_mem.control.wb.reg_we = reg_ex.control.wb.reg_we;
+        next_reg_mem.control.wb.mem_we = reg_ex.control.mem.mem_we;
+        next_reg_mem.control.wb.pcsrc = reg_ex.control.wb.pcsrc;
 
         branch_rs1 = (fwd_a == 2'b10 && !reg_ex.control.mem.mem_re) ? reg_ex.alu_res :
                     (fwd_a == 2'b01) ? reg_data_in    :
@@ -344,8 +386,11 @@ module datapath (
                     (fwd_b == 2'b01) ? reg_data_in    :
                     reg_id.data_2;
 
+        jalr_rs1 = (fwd_a == 2'b10 && !reg_ex.control.mem.mem_re) ? reg_ex.alu_res :
+                    (fwd_a == 2'b01) ? reg_data_in :
+                    reg_id.data_1;  
+
         out_equal = (branch_rs1 == branch_rs2);
-        branch_taken = (out_equal && reg_id.control.mem.branch);
 
         rs1 = reg_if.instr[19:15];
         rs2 = reg_if.instr[24:20];
@@ -361,11 +406,14 @@ module datapath (
         pc_imm = (reg_if.base_pc + (imm_out));
         pc_inc = stall ? pc_out : (pc_out + 64'd4);
 
-        mispredict = reg_id.control.mem.branch && (branch_taken != reg_id.predicted_branch);
+        mispredict = reg_id.control.mem.branch && (c_branch_taken != reg_id.predicted_branch);
+        jump = reg_id.control.ex.jal || reg_id.control.ex.jalr;
 
         if (c_exception) pc_val = `EXCEPTION_ADDR;
         else if (c_mret) pc_val = reg_exception.sepc;
-        else if (mispredict) pc_val = branch_taken ? 
+        else if (reg_id.control.ex.jal) pc_val = reg_id.base_pc + reg_id.imm;
+        else if (reg_id.control.ex.jalr) pc_val = (jalr_rs1 + reg_id.imm) & ~64'h1;
+        else if (mispredict) pc_val = c_branch_taken ? 
                                         (reg_id.base_pc + (reg_id.imm)) :
                                         (reg_id.base_pc + 64'd4);
         else if (reg_if.predicted_branch) pc_val = pc_imm;
@@ -382,11 +430,11 @@ module datapath (
             reg_ex  <= '0;
             reg_mem <= '0;
         end else begin
-            if (c_if_flush || mispredict) begin
+            if (c_if_flush || mispredict || jump) begin
                 reg_if <= '0;
             end else reg_if <= next_reg_if;
 
-            if(c_id_flush || mispredict || stall) begin
+            if(c_id_flush || mispredict || stall || jump) begin
                 reg_id <= '0;
             end else reg_id <= next_reg_id;
 
@@ -398,7 +446,12 @@ module datapath (
         end
     end
 
-    
-assign reg_data_in = reg_mem.control.wb.mtreg ? reg_mem.data_rd : reg_mem.alu_res;
+
+    assign reg_data_in = reg_mem.control.wb.pcsrc ? reg_mem.pc      : 
+                         reg_mem.control.wb.mtreg ? reg_mem.data_rd : 
+                                                    reg_mem.alu_res;
+ 
+// assign reg_data_in = reg_mem.control.wb.mtreg ? reg_mem.data_rd : reg_mem.alu_res;
+
 
 endmodule

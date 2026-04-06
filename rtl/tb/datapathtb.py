@@ -40,8 +40,7 @@ async def test_non_conflict(dut):
 
     await run_clock(dut)
     check_register(dut, non_conflict)
-"""
-"""
+
 @cocotb.test()
 async def test_conflict(dut):
     from rom_results import conflict
@@ -67,7 +66,6 @@ async def test_datapath(dut):
         print(f"REG {i}: {dut.m_regs.regs.value[i]}")
 
     check_register(dut, testbench)
-"""
 
 @cocotb.test()
 async def test_bpu(dut):
@@ -75,3 +73,33 @@ async def test_bpu(dut):
 
     await run_clock(dut, cycles=200)
     check_register(dut, bpu)
+
+@cocotb.test()
+async def test_alu(dut):
+    from rom_results import alu
+
+    await run_clock(dut, cycles=50)
+    check_register(dut, alu)
+
+@cocotb.test()
+async def test_loadstore(dut):
+    from rom_results import loadstore
+
+    await run_clock(dut, cycles=200)
+    check_register(dut, loadstore)
+
+"""
+@cocotb.test()
+async def test_jump(dut):
+    from rom_results import jump
+
+    await run_clock(dut, cycles=200)
+    check_register(dut, jump)
+
+@cocotb.test()
+async def sandbox(dut):
+    from rom_results import sandbox
+
+    await run_clock(dut, cycles=50)
+    check_register(dut, sandbox)
+

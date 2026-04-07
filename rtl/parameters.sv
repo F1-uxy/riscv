@@ -33,6 +33,8 @@
 `define C_LW_TYPE  7'b0000011
 `define C_SW_TYPE  7'b0100011
 `define C_B_TYPE   7'b1100011
+`define C_R_TYPE_W  7'b0111011
+`define C_IM_TYPE_W 7'b0011011
 
 `define OP_LUI     7'b0110111
 `define OP_AUIPC   7'b0010111

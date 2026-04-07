@@ -13,8 +13,9 @@ logic [31:0] mem [0:65535];
 
 initial begin
     $display("Loading rom.");
-    $readmemh("roms/jump.mem", mem);
-    // $readmemh("roms/loadstore.mem", mem);
+    $readmemh("roms/cprogs/test.mem", mem);
+    //$readmemh("roms/jump.mem", mem);
+    //$readmemh("roms/loadstore.mem", mem);
     //$readmemh("roms/alu.mem", mem);
     //$readmemh("roms/testbench.mem", mem);
     //$readmemh("roms/conflict.mem", mem);

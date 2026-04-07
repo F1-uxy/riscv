@@ -234,3 +234,74 @@ async def test_sltu(alu):
         0b1000, 
         0b1,
     )
+
+@cocotb.test()
+async def test_addiw(alu):
+    alu.wordop.value = 1
+    await check_operation(
+        alu, 
+        ALU_ADD, 
+        0x00000000_00000010, 
+        0x00000000_00000005, 
+        0x00000000_00000015,
+    )
+
+    await check_operation(
+        alu, 
+        ALU_ADD, 
+        0x00000000_7fffffff, 
+        0x00000000_00000001, 
+        0xffffffff80000000,
+    )
+
+@cocotb.test()
+async def test_subw(alu):
+    alu.wordop.value = 1
+    await check_operation(
+        alu, 
+        ALU_SUB, 
+        0x00000000_00000005, 
+        0x00000000_00000010, 
+        0xFFFFFFFF_FFFFFFF5
+    )
+
+@cocotb.test()
+async def test_sllw(alu):
+    alu.wordop.value = 1
+    await check_operation(
+        alu, 
+        ALU_SLL, 
+        0x00000000_00000001, 
+        0x00000000_00000004, 
+        0x00000000_00000010
+    )
+
+    await check_operation(
+        alu, 
+        ALU_SLL, 
+        0x00000000_80000000, 
+        0x00000000_00000001, 
+        0x00000000_00000000
+    )
+
+@cocotb.test()
+async def test_srlw(alu):
+    alu.wordop.value = 1
+    await check_operation(
+        alu, 
+        ALU_SRL, 
+        0x00000000_80000000, 
+        0x00000000_00000001, 
+        0x00000000_40000000
+    )
+
+@cocotb.test()
+async def test_sraw(alu):
+    alu.wordop.value = 1
+    await check_operation(
+        alu, 
+        ALU_SRA, 
+        0x00000000_80000000, 
+        0x00000000_00000001, 
+        0xFFFFFFFF_C0000000
+    )

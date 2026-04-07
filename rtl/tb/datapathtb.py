@@ -80,7 +80,9 @@ async def test_alu(dut):
 
     await run_clock(dut, cycles=50)
     check_register(dut, alu)
+"""
 
+"""
 @cocotb.test()
 async def test_loadstore(dut):
     from rom_results import loadstore
@@ -88,13 +90,13 @@ async def test_loadstore(dut):
     await run_clock(dut, cycles=200)
     check_register(dut, loadstore)
 
-"""
 @cocotb.test()
 async def test_jump(dut):
     from rom_results import jump
 
     await run_clock(dut, cycles=200)
     check_register(dut, jump)
+"""
 
 @cocotb.test()
 async def sandbox(dut):
@@ -102,4 +104,3 @@ async def sandbox(dut):
 
     await run_clock(dut, cycles=50)
     check_register(dut, sandbox)
-

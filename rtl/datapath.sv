@@ -33,6 +33,9 @@ module datapath (
         logic alu_src;
         logic jal;
         logic jalr;
+        logic lui;
+        logic auipc;
+        logic wordop;
         logic [1:0] aluop;
     } rcs_ex;
 
@@ -201,7 +204,7 @@ module datapath (
 
     logic c_branch, c_reg_we, c_dmu_we, c_dmu_re, c_mtreg, c_alu_src, 
           c_exception, c_mret, c_if_flush, c_id_flush, c_ex_flush, c_jal,
-          c_jalr, c_pcsrc;
+          c_jalr, c_pcsrc, c_lui, c_auipc, c_wordop;
     logic [1:0] aluop;
     control_unit c_control_unit (
         .opcode(opcode),
@@ -219,7 +222,10 @@ module datapath (
         .ex_flush(c_ex_flush),
         .jal(c_jal),
         .jalr(c_jalr),
+        .lui(c_lui),
+        .auipc(c_auipc),
         .pcsrc(c_pcsrc),
+        .wordop(c_wordop),
         .aluop(aluop)
     );
 
@@ -250,6 +256,7 @@ module datapath (
         .alucontrol(alu_op),
         .rs1(alu_a),
         .rs2(alu_b),
+        .wordop(reg_id.control.ex.wordop),
 
         .result(alu_out),
         .c_zero(f_zero)
@@ -340,7 +347,10 @@ module datapath (
         next_reg_id.control.ex.aluop   = aluop;
         next_reg_id.control.ex.alu_src = c_alu_src;
         next_reg_id.control.ex.jal     = c_jal;
-        next_reg_id.control.ex.jalr     = c_jalr;
+        next_reg_id.control.ex.jalr    = c_jalr;
+        next_reg_id.control.ex.lui     = c_lui;
+        next_reg_id.control.ex.auipc   = c_auipc;
+        next_reg_id.control.ex.wordop = c_wordop;
         next_reg_id.control.mem.branch = c_branch;
         next_reg_id.control.mem.mem_we = c_dmu_we;
         next_reg_id.control.mem.mem_re = c_dmu_re;
@@ -394,10 +404,13 @@ module datapath (
 
         rs1 = reg_if.instr[19:15];
         rs2 = reg_if.instr[24:20];
-        alu_a = (fwd_a == 2'b00) ? reg_id.data_1 :
+        alu_a = reg_id.control.ex.lui ? 64'b0 :
+                reg_id.control.ex.auipc ? reg_id.base_pc :
+                (fwd_a == 2'b00) ? reg_id.data_1 :
                 (fwd_a == 2'b01) ? reg_data_in :
                 (fwd_a == 2'b10) ? reg_ex.alu_res :
                 64'b0;
+
         alu_b_fwd = (fwd_b == 2'b00) ? reg_id.data_2 :
                     (fwd_b == 2'b01) ? reg_data_in :
                     (fwd_b == 2'b10) ? reg_ex.alu_res :

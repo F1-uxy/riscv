@@ -17,7 +17,9 @@ module control_unit (
     output logic       jal,
     output logic       jalr,
     output logic       pcsrc,
-    // output logic       lui_src,
+    output logic       lui,
+    output logic       auipc,
+    output logic       wordop,
     output logic [1:0] aluop
 );
     
@@ -36,6 +38,9 @@ always_comb begin
     jal        = 0;
     jalr       = 0;
     pcsrc      = 0;
+    lui        = 0;
+    auipc      = 0;
+    wordop    = 0;
     aluop = `ALUOP_RTYPE;
 
     case (opcode)
@@ -66,14 +71,27 @@ always_comb begin
             alu_src    = 0;
             aluop = `ALUOP_BRANCH;
         end
+        `C_R_TYPE_W: begin
+            reg_we     = 1;
+            wordop    = 1;
+            aluop = `ALUOP_RTYPE;
+        end
+        `C_IM_TYPE_W: begin
+            reg_we     = 1;
+            alu_src    = 1;
+            wordop    = 1;
+            aluop = `ALUOP_RTYPE;
+        end
         `OP_LUI: begin
             reg_we = 1;
             alu_src = 1;
-            mtreg = 0;
+            lui = 1;
+            aluop = `ALUOP_LWSW;
         end
         `OP_AUIPC: begin
             reg_we = 1;
             alu_src = 1;
+            auipc = 1;
             aluop = `ALUOP_LWSW;
         end
         `OP_JAL: begin
